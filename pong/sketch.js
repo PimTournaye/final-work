@@ -1,7 +1,9 @@
 // Set arbirary note number to compare later
-let lowestNote = 54;
-let highestNote = 55;
-let MIDI;
+let lowestNoteRight = 54;
+let lowestNoteLeft = 54;
+let highestNoteRight =54; 
+let highestNoteLeft = 55;
+let keyboard1, keyboard2;
 
 function setup() {
   createCanvas(1200, 900);
@@ -20,38 +22,59 @@ function setup() {
     .catch(err => alert(err));
 }
 
+// only start draw once the MIDI device is connected and the lowest and highest note are defined and remain the same for at least 10 seconds
+
+
 function draw() {
   background(220);
   getKeyboardRange();
-  drawKeyboard();
+  // if keyboard range remains the same for at least 10 seconds, stop calling getKeyboardRange()
+
+  drawPianoKeys('right');
+  drawPianoKeys('left');
   drawBall();
 }
 
-// draw the piano keyboard on the left and right sides of the screen for 60px, ranging from the lowest note to the highest note
-function drawKeyboard() {
-  let y = 0;
-  let keyWidth = 60;
-  let keyHeight = height / (highestNote - lowestNote);
-  for (let i = lowestNote; i <= highestNote; i++) {
-    let key = i;
-    let keyColor = color(255);
-    // check for black piano keys and change color in the range of the lowest note to the highest note
-    if (key % 12 == 1 || key % 12 == 3 || key % 12 == 6 || key % 12 == 8 || key % 12 == 10) {
-      keyColor = color(0);
-    }
-    MIDI.addListener("noteon", e => {
-      if (e.note.number == key) {
-        keyColor = color(255);
+function drawPianoKeys(side) {
+  if (side == 'left') {
+    let y = 0;
+    let keyWidth = 60;
+    let keyHeight = height / (highestNoteLeft - lowestNoteLeft + 1);
+    for (let i = lowestNoteLeft; i <= highestNoteLeft; i++) {
+      let key = i;
+      let keyColor = color(255);
+      // check for black piano keys and change color in the range of the lowest note to the highest note
+      if (key % 12 == 1 || key % 12 == 3 || key % 12 == 6 || key % 12 == 8 || key % 12 == 10) {
+        keyColor = color(0);
       }
+      // if a key is played on the connected MIDI device, draw the key as red
+      
+      fill(keyColor);
+      rect(0, y, keyWidth, keyHeight);
+  
+      // change y position for next key
+      y += keyHeight;
+    }
+  }
 
-    });
-    // if a key is played on the connected MIDI device, draw the key as red
-    
-    fill(keyColor);
-    rect(0, y, keyWidth, keyHeight);
-
-    // change y position for next key
-    y += keyHeight;
+  if (side == 'right') {
+    let y = 0;
+    let keyWidth = 60;
+    let keyHeight = height / (highestNoteRight - lowestNoteRight);
+    for (let i = lowestNoteRight; i <= highestNoteRight; i++) {
+      let key = i;
+      let keyColor = color(255);
+      // check for black piano keys and change color in the range of the lowest note to the highest note
+      if (key % 12 == 1 || key % 12 == 3 || key % 12 == 6 || key % 12 == 8 || key % 12 == 10) {
+        keyColor = color(0);
+      }
+      // if a key is played on the connected MIDI device, draw the key as red
+      fill(keyColor);
+      rect(width - keyWidth, y, keyWidth, keyHeight);
+  
+      // change y position for next key
+      y += keyHeight;
+    }
   }
 }
 
@@ -71,19 +94,35 @@ function drawBall() {
 
 onEnabled = () => {
   console.log('WebMidi enabled!');
-  MIDI = WebMidi.getInputByName("KOMPLETE KONTROL M32").channels[1];
 
+  keyboard1 = WebMidi.getInputByName("KOMPLETE KONTROL M32").channels[1];
+  keyboard2 = WebMidi.getInputByName("Launchkey MK3 49 LKMK3 MIDI Out").channels[1];
+
+  WebMidi.inputs.forEach((device, index) => {
+    console.log(`${index}: ${device.name}`);
+  });
 }
 
-
 function getKeyboardRange() {
-  MIDI.addListener("noteon", e => {
-    if (e.note.number > highestNote) {
-      highestNote = e.note.number;
+  keyboard1.addListener("noteon", e => {
+    console.log(e.note.number);
+    if (e.note.number > highestNoteRight) {
+      highestNoteRight = e.note.number;
       console.log('new highest note: ' + highestNote);
     }
-    if (e.note.number < lowestNote) {
-      lowestNote = e.note.number;
+    if (e.note.number < lowestNoteRight) {
+      lowestNoteRight = e.note.number;
+      console.log('new lowest note: ' + lowestNote);
+    }
+  });
+
+  keyboard2.addListener("noteon", e => {
+    if (e.note.number > highestNoteLeft) {
+      highestNoteLeft = e.note.number;
+      console.log('new highest note: ' + highestNote);
+    }
+    if (e.note.number < lowestNoteLeft) {
+      lowestNoteLeft = e.note.number;
       console.log('new lowest note: ' + lowestNote);
     }
   });
