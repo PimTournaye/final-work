@@ -1,11 +1,15 @@
+import {WebMidi} from 'webmidi';
+import { sketch } from 'p5js-wrapper';
+
 // Set arbirary note number to compare later
 let lowestNoteRight = 54;
 let lowestNoteLeft = 54;
 let highestNoteRight =54; 
 let highestNoteLeft = 55;
 let keyboard1, keyboard2;
+let ballX, ballY, ballXSpeed, ballYSpeed;
 
-function setup() {
+ sketch.setup = () => {
   createCanvas(1200, 900);
 
   // define ballX and ballY
@@ -18,14 +22,24 @@ function setup() {
 
   WebMidi
     .enable()
-    .then(onEnabled)
+    .then( () => {
+      console.log('WebMidi enabled!');
+
+  //keyboard1 = WebMidi.getInputByName("KOMPLETE KONTROL M32").channels[1];
+  keyboard1 = WebMidi.getInputByName("Launchkey MK3 49 LKMK3 MIDI Out").channels[1];
+  keyboard2 = WebMidi.getInputByName("Launchkey MK3 49 LKMK3 MIDI Out").channels[1];
+
+  WebMidi.inputs.forEach((device, index) => {
+    console.log(`${index}: ${device.name}`);
+  });
+    })
     .catch(err => alert(err));
 }
 
 // only start draw once the MIDI device is connected and the lowest and highest note are defined and remain the same for at least 10 seconds
 
 
-function draw() {
+sketch.draw = () => {
   background(220);
   getKeyboardRange();
   // if keyboard range remains the same for at least 10 seconds, stop calling getKeyboardRange()
@@ -81,7 +95,7 @@ function drawPianoKeys(side) {
 // draw a pong ball and move it around the screen like in the pong game
 function drawBall() {
   fill(255, 0, 0);
-  ellipse(ballX, ballY, 20, 20);
+  rect(ballX, ballY, 20, 20);
   ballX += ballXSpeed;
   ballY += ballYSpeed;
   if (ballX > width || ballX < 0) {
@@ -92,38 +106,22 @@ function drawBall() {
   }
 }
 
-onEnabled = () => {
-  console.log('WebMidi enabled!');
-
-  keyboard1 = WebMidi.getInputByName("KOMPLETE KONTROL M32").channels[1];
-  keyboard2 = WebMidi.getInputByName("Launchkey MK3 49 LKMK3 MIDI Out").channels[1];
-
-  WebMidi.inputs.forEach((device, index) => {
-    console.log(`${index}: ${device.name}`);
-  });
-}
-
 function getKeyboardRange() {
   keyboard1.addListener("noteon", e => {
-    console.log(e.note.number);
     if (e.note.number > highestNoteRight) {
       highestNoteRight = e.note.number;
-      console.log('new highest note: ' + highestNote);
     }
     if (e.note.number < lowestNoteRight) {
       lowestNoteRight = e.note.number;
-      console.log('new lowest note: ' + lowestNote);
     }
   });
 
   keyboard2.addListener("noteon", e => {
     if (e.note.number > highestNoteLeft) {
       highestNoteLeft = e.note.number;
-      console.log('new highest note: ' + highestNote);
     }
     if (e.note.number < lowestNoteLeft) {
       lowestNoteLeft = e.note.number;
-      console.log('new lowest note: ' + lowestNote);
     }
   });
 }
