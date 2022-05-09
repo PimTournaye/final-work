@@ -13,8 +13,6 @@ let highestNoteLeft = 55;
 let keyboard1, keyboard2;
 let ballX, ballY, ballXSpeed, ballYSpeed, div;
 
-let midiAccess = null;
-
 sketch.setup = () => {
   createCanvas(1200, 900);
 
@@ -37,19 +35,19 @@ sketch.setup = () => {
       //keyboard1 = WebMidi.getInputByName("KOMPLETE KONTROL M32").channels[1];
       keyboard1 = WebMidi.getInputByName(name2).channels[1];
       keyboard2 = WebMidi.getInputByName(name2).channels[1];
-
-      midiAccess = true;
     })
     .catch(err => alert(err));
 
-  div = createDiv('this is some text');
-  div.style('font-size', '16px');
-  div.id = '#active'
-  div.position(width / 2, height / 2);
+div = createDiv('this is some text');
+div.style('font-size', '16px');
+div.id = '#active'
+div.position(width/2, height/2);
 
 }
 
 // only start draw once the MIDI device is connected and the lowest and highest note are defined and remain the same for at least 10 seconds
+
+
 sketch.draw = () => {
   background(220);
   getKeyboardRange();
@@ -58,31 +56,18 @@ sketch.draw = () => {
   drawPianoKeys('right');
   drawPianoKeys('left');
   drawBall();
-  drawPaddle('right');
+  displayActiveNotes();
 }
 
 // draw the paddle ranging from the lowest active note to the highest active note and the side of the screen
 function drawPaddle(side) {
-  if (side == 'right') {
-    fill(200, 0, 100);
-    let actives = getActiveNotes();
-    if (actives.length == 0) {
-      console.log('no active notes');
-      return;
-    }
-    let lowestActive = actives[0];
-    let highestActive = actives[actives.length - 1];
-    // draw the paddle from the lowestActive to the highestActive
-    rect(100,100,100 ,100)
-    rect(width - 60, height / (highestActive - lowestActive + 1) * (lowestActive - lowestNoteRight), 60, height / (highestActive - lowestActive + 1) * (highestActive - lowestActive + 1));
+  if (side === 'right') {
+    fill(255);
+    // define the paddle height from the lowest active note to the highest active note
 
   } else {
-    fill(200, 0, 100);
-    let actives = getActiveNotes();
-    let lowestActive = actives[0];
-    let highestActive = actives[actives.length - 1];
-    // draw the paddle from the lowestActive to the highestActive
-    rect(0, height / (highestActive - lowestActive + 1) * (lowestActive - lowestNoteLeft), 60, height / (highestActive - lowestActive + 1) * (highestActive - lowestActive + 1));
+    fill(255);
+    rect(0, 0, 20, height);
   }
 }
 
@@ -95,14 +80,13 @@ function getActiveNotes() {
   try {
     keyboard1.addListener("noteon", e => {
       activeNotes.push(e.note.number);
-      console.log(activeNotes);
     });
     keyboard1.addListener("noteoff", e => {
       activeNotes.splice(activeNotes.indexOf(e.note.number), 1);
     });
     if (activeNotes.length = 0) {
       console.log('no active notes');
-    }
+        }
   } catch (error) {
     console.log(error);
   }
