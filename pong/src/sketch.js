@@ -12,11 +12,13 @@ let highestNoteRight = 54;
 let highestNoteLeft = 55;
 let keyboard1, keyboard2;
 let ballX, ballY, ballXSpeed, ballYSpeed, div;
+let activeNotes = [];
 
 let midiAccess = null;
 
 sketch.setup = () => {
   createCanvas(1200, 900);
+  frameRate(10)
 
   // define ballX and ballY
   ballX = width / 2;
@@ -35,8 +37,8 @@ sketch.setup = () => {
         console.log(`${index}: ${device.name}`);
       });
       //keyboard1 = WebMidi.getInputByName("KOMPLETE KONTROL M32").channels[1];
-      keyboard1 = WebMidi.getInputByName(name2).channels[1];
-      keyboard2 = WebMidi.getInputByName(name2).channels[1];
+      keyboard1 = WebMidi.getInputByName(name1).channels[1];
+      keyboard2 = WebMidi.getInputByName(name1).channels[1];
 
       midiAccess = true;
     })
@@ -59,6 +61,7 @@ sketch.draw = () => {
   drawPianoKeys('left');
   drawBall();
   drawPaddle('right');
+  displayActiveNotes();
 }
 
 // draw the paddle ranging from the lowest active note to the highest active note and the side of the screen
@@ -67,13 +70,11 @@ function drawPaddle(side) {
     fill(200, 0, 100);
     let actives = getActiveNotes();
     if (actives.length == 0) {
-      console.log('no active notes');
       return;
     }
     let lowestActive = actives[0];
     let highestActive = actives[actives.length - 1];
     // draw the paddle from the lowestActive to the highestActive
-    rect(100,100,100 ,100)
     rect(width - 60, height / (highestActive - lowestActive + 1) * (lowestActive - lowestNoteRight), 60, height / (highestActive - lowestActive + 1) * (highestActive - lowestActive + 1));
 
   } else {
@@ -91,22 +92,33 @@ function drawPaddle(side) {
 
 // function that puts all the active notes in an array using webmidi
 function getActiveNotes() {
-  let activeNotes = [];
   try {
     keyboard1.addListener("noteon", e => {
+      // if the e.note.rawAttack is 0, remove it from the array
+      if (e.note.rawAttack == 0) {
+        activeNotes = activeNotes.filter(note => note != e.note.number);
+      } else if (activeNotes.includes(e.note.number)) {
+        return;
+      } else {
       activeNotes.push(e.note.number);
-      console.log(activeNotes);
+    }
+    console.log('test 1: ', activeNotes, 'length: ', activeNotes.length);
     });
+
     keyboard1.addListener("noteoff", e => {
       activeNotes.splice(activeNotes.indexOf(e.note.number), 1);
+      console.log('removed note from array');
     });
-    if (activeNotes.length = 0) {
-      console.log('no active notes');
-    }
+    console.log('test 2: ', activeNotes.length, 'active notes', activeNotes);
+
+    // if (activeNotes.length == 0) {
+    //   //console.log('no active notes');
+    // }
+    console.log('test 3: ', activeNotes.length, 'active notes', activeNotes);
+    return activeNotes;
   } catch (error) {
     console.log(error);
   }
-  return activeNotes;
 }
 
 // draw the output of the getActiveNotes() function in the middle of the screen in purple text
