@@ -1,5 +1,8 @@
 import { WebMidi } from 'webmidi';
 import { p5, sketch } from 'p5js-wrapper';
+import Keyboard from './Keyboard';
+import PongBall from './PongBall';
+
 
 let name1 = "Launchkey MK3 49 LKMK3 MIDI Out"
 let name2 = "Keystation 61 MK3"
@@ -14,20 +17,26 @@ let keyboard1, keyboard2;
 let ballX, ballY, ballXSpeed, ballYSpeed, div;
 let activeNotes = [];
 
+let playerLeft, playerRight;
+let [keysLeft, keysRight] = [[],[]];
+
+let ball;
+
 let midiAccess = null;
 
 sketch.setup = () => {
   createCanvas(1200, 900);
-  frameRate(10)
+  frameRate(20)
 
   // define ballX and ballY
   ballX = width / 2;
   ballY = height / 2;
 
   //define ballYSpped and ballXSpeed
-  ballXSpeed = random(-5, 5);
-  ballYSpeed = random(-5, 5);
+  ballXSpeed = random(-50, 50) /2;
+  ballYSpeed = random(-50, 50) /2;
 
+  // WebMIDI setup
   WebMidi
     .enable()
     .then(() => {
@@ -44,10 +53,21 @@ sketch.setup = () => {
     })
     .catch(err => alert(err));
 
+  // create a div for debugging
   div = createDiv('this is some text');
   div.style('font-size', '16px');
   div.id = '#active'
   div.position(width / 2, height / 2);
+
+  // Setup up the pong ball
+  let direction = createVector(ballXSpeed, ballYSpeed);
+  ball = new PongBall(width / 2, height / 2, 20, 20, direction);
+
+
+  // Setup the keyboards
+  playerLeft = new Keyboard('left', keysLeft, keyboard1);
+  playerRight = new Keyboard('right', keysRight, keyboard2);
+  
 
 }
 
@@ -64,31 +84,31 @@ sketch.draw = () => {
   displayActiveNotes();
 }
 
-// draw the paddle ranging from the lowest active note to the highest active note and the side of the screen
+// draw a paddle 10px from the keyboard, ranging from the lowest active note to the highest active note
 function drawPaddle(side) {
-  if (side == 'right') {
-    fill(200, 0, 100);
-    let actives = getActiveNotes();
-    if (actives.length == 0) {
-      return;
-    }
-    let lowestActive = actives[0];
-    let highestActive = actives[actives.length - 1];
-    // draw the paddle from the lowestActive to the highestActive
-    rect(width - 60, height / (highestActive - lowestActive + 1) * (lowestActive - lowestNoteRight), 60, height / (highestActive - lowestActive + 1) * (highestActive - lowestActive + 1));
+  let actives = getActiveNotes();
+  let lowestActive = actives[0];
+  let highestActive = actives[actives.length - 1];
+  let paddleWidth = 15;
 
-  } else {
-    fill(200, 0, 100);
-    let actives = getActiveNotes();
-    let lowestActive = actives[0];
-    let highestActive = actives[actives.length - 1];
-    // draw the paddle from the lowestActive to the highestActive
-    rect(0, height / (highestActive - lowestActive + 1) * (lowestActive - lowestNoteLeft), 60, height / (highestActive - lowestActive + 1) * (highestActive - lowestActive + 1));
+  let keyHeight = height / (highestActive - lowestActive + 1);
+
+
+  if (actives.length == 0) {
+    return;
+  }
+  fill(100);
+  if (side == 'left') {
+    let paddleX = 70;
+    // draw a rect from the lowest active note it's corresponding piano key to the highest active note it's corresponding piano key
+    rect(paddleX, lowestActive * 60, paddleWidth, (highestActive - lowestActive + 1) * 60);
+  } else if (side == 'right') {
+    rect(100, 100, paddleWidth, (highestNoteRight - lowestNoteRight + 1) * 60);
+    let paddleX = width - 70;
+    // draw a rect from the lowest active note it's corresponding piano key to the highest active note it's corresponding piano key
+    rect(paddleX, lowestActive * 60, paddleWidth, (highestActive - lowestActive + 1) * 60);
   }
 }
-
-
-// listen for 
 
 // function that puts all the active notes in an array using webmidi
 function getActiveNotes() {
@@ -100,21 +120,20 @@ function getActiveNotes() {
       } else if (activeNotes.includes(e.note.number)) {
         return;
       } else {
-      activeNotes.push(e.note.number);
-    }
-    console.log('test 1: ', activeNotes, 'length: ', activeNotes.length);
+        activeNotes.push(e.note.number);
+      }
+      //console.log('test 1: ', activeNotes, 'length: ', activeNotes.length);
     });
 
     keyboard1.addListener("noteoff", e => {
       activeNotes.splice(activeNotes.indexOf(e.note.number), 1);
-      console.log('removed note from array');
     });
-    console.log('test 2: ', activeNotes.length, 'active notes', activeNotes);
+    //console.log('test 2: ', activeNotes.length, 'active notes', activeNotes);
 
     // if (activeNotes.length == 0) {
     //   //console.log('no active notes');
     // }
-    console.log('test 3: ', activeNotes.length, 'active notes', activeNotes);
+    //console.log('test 3: ', activeNotes.length, 'active notes', activeNotes);
     return activeNotes;
   } catch (error) {
     console.log(error);
@@ -154,9 +173,7 @@ function drawPianoKeys(side) {
       // change y position for next key
       y += keyHeight;
     }
-  }
-
-  if (side == 'right') {
+  } else if (side == 'right') {
     let y = 0;
     let keyWidth = 60;
     let keyHeight = height / (highestNoteRight - lowestNoteRight + 1);
@@ -174,20 +191,6 @@ function drawPianoKeys(side) {
       // change y position for next key
       y += keyHeight;
     }
-  }
-}
-
-// draw a pong ball and move it around the screen like in the pong game
-function drawBall() {
-  fill(255, 0, 0);
-  rect(ballX, ballY, 20, 20);
-  ballX += ballXSpeed;
-  ballY += ballYSpeed;
-  if (ballX > width || ballX < 0) {
-    ballXSpeed *= -1;
-  }
-  if (ballY > height || ballY < 0) {
-    ballYSpeed *= -1;
   }
 }
 
@@ -210,6 +213,7 @@ function getKeyboardRange() {
         lowestNoteLeft = e.note.number;
       }
     });
+
   } catch (error) {
     console.log(error);
   }

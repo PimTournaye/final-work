@@ -9,4 +9,8 @@ class Obstacle {
         this.text;
         this.event;
     }
+
+    triggerEvent() {
+        this.event();
+    }
 }

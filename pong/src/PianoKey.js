@@ -6,8 +6,7 @@ export default class PianoKey {
 
     // draw this key
     draw() {
-        fill(this.color);
-        rect(0, 0, 60, height / (highestNote - lowestNote + 1));
+        fill(this.color);;
     }
 
     // check whether the key is white or black

@@ -10,13 +10,11 @@ export default class PongBall {
     draw() {
         fill(255, 0, 0);
         rect(this.x, this.y, this.radius, this.radius);
-        ballX += ballXSpeed;
-        ballY += ballYSpeed;
         if (ballX > width || ballX < 0) {
-            ballXSpeed *= -1;
+            this.direction.x *= -1;
         }
         if (ballY > height || ballY < 0) {
-            ballYSpeed *= -1;
+            this.direction.y *= -1;
         }
     }
 
@@ -26,8 +24,34 @@ export default class PongBall {
         this.y += this.speed * this.direction.y;
     }
 
+    // check collisions with paddles or event blocks
+    checkCollision() {
+        // check collisions with paddles
+        if (this.x - this.radius <= paddleLeft.x + paddleLeft.width && this.x + this.radius >= paddleLeft.x && this.y - this.radius <= paddleLeft.y + paddleLeft.height && this.y + this.radius >= paddleLeft.y) {
+            this.direction.x *= -1;
+        }
+        if (this.x - this.radius <= paddleRight.x + paddleRight.width && this.x + this.radius >= paddleRight.x && this.y - this.radius <= paddleRight.y + paddleRight.height && this.y + this.radius >= paddleRight.y) {
+            this.direction.x *= -1;
+        }
+        // check collisions with event blocks
+        for (let i = 0; i < eventBlocks.length; i++) {
+            if (this.x - this.radius <= eventBlocks[i].x + eventBlocks[i].width && this.x + this.radius >= eventBlocks[i].x && this.y - this.radius <= eventBlocks[i].y + eventBlocks[i].height && this.y + this.radius >= eventBlocks[i].y) {
+                eventBlocks[i].destroy();
+                this.direction.y *= -1;
+            }
+        }
+
+
+    }
+
     // change direction of the ball
     changeDirection(direction) {
         this.direction = direction;
+    }
+
+    update(){
+        this.move();
+        this.draw()
+        this.checkCollision();
     }
 }
