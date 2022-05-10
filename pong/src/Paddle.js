@@ -1,13 +1,13 @@
-class Paddle {
-    constructor(x, y, height) {
+export default class Paddle {
+    constructor(x, lowestActive, highestActive) {
         this.x = x;
-        this.y = y;
+        this.y = lowestActive;
         this.width = 10;
-        this.height = height;
+        this.height = highestActive - lowestActive;
     }
 
     draw() {
-        fill(255);
+        fill(200);
         rect(this.x, this.y, this.width, this.height);
     }
 

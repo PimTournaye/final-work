@@ -1,12 +1,16 @@
 export default class PianoKey {
-    constructor(note) {
+    constructor(note, x, y, height) {
         this.note = this.getNoteName(note);
         this.color = this.isBlack();
+        this.x = x;
+        this.y = y;
+        this.height = height;
     }
 
     // draw this key
     draw() {
-        fill(this.color);;
+        fill(this.color);
+        rect(this.x, this.y, this.height, this.height);
     }
 
     // check whether the key is white or black
@@ -22,7 +26,5 @@ export default class PianoKey {
     getNoteName(note) {
         return Tonal.Note.fromMidi(note);
     }
-
-
 
 }

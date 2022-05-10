@@ -3,7 +3,6 @@ import { p5, sketch } from 'p5js-wrapper';
 import Keyboard from './Keyboard';
 import PongBall from './PongBall';
 
-
 let name1 = "Launchkey MK3 49 LKMK3 MIDI Out"
 let name2 = "Keystation 61 MK3"
 let name3 = "KOMPLETE KONTROL M32"
@@ -13,45 +12,58 @@ let lowestNoteRight = 54;
 let lowestNoteLeft = 54;
 let highestNoteRight = 54;
 let highestNoteLeft = 55;
-let keyboard1, keyboard2;
-let ballX, ballY, ballXSpeed, ballYSpeed, div;
+
+let ballX, ballY, div;
 let activeNotes = [];
 
+export let w, h;
+export let inputs = [];
+let keyboard1, keyboard2
+
 let playerLeft, playerRight;
-let [keysLeft, keysRight] = [[],[]];
+let PLAYERS = [];
+
+export let [keysLeft, keysRight] = [[54], [54]];
 
 let ball;
 
-let midiAccess = null;
+// MIDI SETUP
+WebMidi
+.enable()
+.then(() => {
+  console.log('WebMidi enabled!');
 
+  WebMidi.inputs.forEach((device, index) => {
+    console.log(`${index}: ${device.name}`);
+  });
+  let input1 = WebMidi.getInputByName(name1);
+  let input2 = WebMidi.getInputByName(name1);
+  inputs.push(input1);
+  inputs.push(input2);
+
+  // Setup the keyboards
+  playerLeft = new Keyboard('left', keysLeft, 1);
+  playerRight = new Keyboard('right', keysRight, 1);
+
+  //PLAYERS.push(...playerLeft, ...playerRight);
+  PLAYERS.push(playerLeft, playerRight);
+})
+.catch(err => console.log(err));
+
+
+
+// p5 SETUP
 sketch.setup = () => {
   createCanvas(1200, 900);
   frameRate(20)
+
+  w = width;
+  h = height;
 
   // define ballX and ballY
   ballX = width / 2;
   ballY = height / 2;
 
-  //define ballYSpped and ballXSpeed
-  ballXSpeed = random(-50, 50) /2;
-  ballYSpeed = random(-50, 50) /2;
-
-  // WebMIDI setup
-  WebMidi
-    .enable()
-    .then(() => {
-      console.log('WebMidi enabled!');
-
-      WebMidi.inputs.forEach((device, index) => {
-        console.log(`${index}: ${device.name}`);
-      });
-      //keyboard1 = WebMidi.getInputByName("KOMPLETE KONTROL M32").channels[1];
-      keyboard1 = WebMidi.getInputByName(name1).channels[1];
-      keyboard2 = WebMidi.getInputByName(name1).channels[1];
-
-      midiAccess = true;
-    })
-    .catch(err => alert(err));
 
   // create a div for debugging
   div = createDiv('this is some text');
@@ -60,28 +72,29 @@ sketch.setup = () => {
   div.position(width / 2, height / 2);
 
   // Setup up the pong ball
-  let direction = createVector(ballXSpeed, ballYSpeed);
-  ball = new PongBall(width / 2, height / 2, 20, 20, direction);
+  let direction = createVector(random(-50, 50), random(-50, 50));
+  ball = new PongBall(width / 2, height / 2, 20, 2, direction);
 
 
-  // Setup the keyboards
-  playerLeft = new Keyboard('left', keysLeft, keyboard1);
-  playerRight = new Keyboard('right', keysRight, keyboard2);
-  
 
 }
 
 // only start draw once the MIDI device is connected and the lowest and highest note are defined and remain the same for at least 10 seconds
 sketch.draw = () => {
   background(220);
-  getKeyboardRange();
+  //getKeyboardRange();
   // if keyboard range remains the same for at least 10 seconds, stop calling getKeyboardRange()
+  ball.update();
 
-  drawPianoKeys('right');
-  drawPianoKeys('left');
-  drawBall();
-  drawPaddle('right');
-  displayActiveNotes();
+  //drawPianoKeys('right');
+  //drawPianoKeys('left');
+  PLAYERS.forEach(keyboard => {
+    keyboard.update();
+  });
+
+
+  //drawPaddle('right');
+  //displayActiveNotes();
 }
 
 // draw a paddle 10px from the keyboard, ranging from the lowest active note to the highest active note
@@ -196,7 +209,7 @@ function drawPianoKeys(side) {
 
 function getKeyboardRange() {
   try {
-    keyboard1.addListener("noteon", e => {
+    inputs[0].addListener("noteon", e => {
       if (e.note.number > highestNoteRight) {
         highestNoteRight = e.note.number;
       }
@@ -205,7 +218,7 @@ function getKeyboardRange() {
       }
     });
 
-    keyboard2.addListener("noteon", e => {
+    inputs[0].addListener("noteon", e => {
       if (e.note.number > highestNoteLeft) {
         highestNoteLeft = e.note.number;
       }
