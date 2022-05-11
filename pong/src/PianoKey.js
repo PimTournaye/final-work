@@ -1,3 +1,5 @@
+import { Note } from '@tonaljs/tonal'
+
 export default class PianoKey {
     constructor(note, x, y, height) {
         this.note = this.getNoteName(note);
@@ -24,7 +26,7 @@ export default class PianoKey {
 
     // convert MIDI number to note name using Tonal.js
     getNoteName(note) {
-        return Tonal.Note.fromMidi(note);
+        return Note.fromMidi(note);
     }
 
 }
