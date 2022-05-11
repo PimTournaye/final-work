@@ -11,7 +11,7 @@ export default class Keyboard {
     // Set the keys this keyboard has
     this.keys = keys;
 
-    this.keys = this.fillNotes();
+    //this.keys = this.fillNotes();
     // Range of the keyboard
     this.range;
     // Set the highest and lowest notes for this keyboard
@@ -34,7 +34,6 @@ export default class Keyboard {
   }
 
   setMIDIchannel(input) {
-    console.log(inputs[input].channels[1]);
     let channel = inputs[input].channels[1];   
     return channel;
   }
@@ -44,26 +43,31 @@ export default class Keyboard {
       let keyWidth = 60;
       let keyHeight = height / (this.highestNote - this.lowestNote + 1);
       let x;
+      let y = 0;
       if (this.side == 'left') {
         x = 0;
       } else x = width - keyWidth;
+
       for (let i = this.lowestNote; i <= this.highestNote; i++) {
         let currentNote = i;
-        this.keys.push(new PianoKey(currentNote, x, y, keyHeight))
+        let newKey = new PianoKey(currentNote, x, y, keyHeight)
 
-        // change y position for next key
+        // if this.keys already has the same key that was just generated, skip it
+        // if (!this.keys.contains(newKey)) {
+        //   this.keys.push(newKey)
+        // }
         y += keyHeight;
       }
     } catch (error) {
-
+      console.log(error)
     }
   }
 
   getActiveNotes() {
-    // if MIDI is not connected, stop this function
-    if (this.MIDI_CHANNEL == undefined) {
-      return;
-    }
+    // // if MIDI is not connected, stop this function
+    // if (this.MIDI_CHANNEL == undefined) {
+    //   return;
+    // }
     // Try catch to make sure the MIDI device is connected, or to compensate for timing or syncing issues
     try {
       this.MIDI_CHANNEL.addListener("noteon", e => {
@@ -96,11 +100,10 @@ export default class Keyboard {
           this.lowestNote = e.note.number;
         }
       });
+      this.range = this.highestNote - this.lowestNote + 1;
     } catch (error) {
       console.log(error);
     }
-    // Update the range of the keyboard
-    this.range = this.highestNote - this.lowestNote + 1;
   }
 
   drawKeys() {
@@ -124,10 +127,9 @@ export default class Keyboard {
 
 
   update() {
-    console.log(this);
     this.getRange();
-    this.getActiveNotes();
-    this.drawKeys()
+    this.fillNotes()
+    //this.drawKeys()
     this.updatePaddle();
   }
 }
