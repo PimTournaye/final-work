@@ -6,6 +6,7 @@ import PongBall from './PongBall';
 let name1 = "Launchkey MK3 49 LKMK3 MIDI Out"
 let name2 = "Keystation 61 MK3"
 let name3 = "KOMPLETE KONTROL M32"
+let name4 = 'IAC Driver Bus 1'
 
 // Set arbirary note number to compare later
 let lowestNoteRight = 54;
@@ -16,7 +17,8 @@ let highestNoteLeft = 55;
 let ballX, ballY, div;
 let activeNotes = [];
 
-export let w, h;
+export let w = 1200;
+export let h = 900
 export let inputs = [];
 let keyboard1, keyboard2
 
@@ -29,36 +31,36 @@ let ball;
 
 // MIDI SETUP
 WebMidi
-.enable()
-.then(() => {
-  console.log('WebMidi enabled!');
+  .enable()
+  .then(() => {
+    console.log('WebMidi enabled!');
 
-  WebMidi.inputs.forEach((device, index) => {
-    console.log(`${index}: ${device.name}`);
-  });
-  let input1 = WebMidi.getInputByName(name1);
-  let input2 = WebMidi.getInputByName(name1);
-  inputs.push(input1);
-  inputs.push(input2);
+    WebMidi.inputs.forEach((device, index) => {
+      console.log(`${index}: ${device.name}`);
+    });
+    let input1 = WebMidi.getInputByName(name4);
+    let input2 = WebMidi.getInputByName(name4);
+    inputs.push(input1);
+    inputs.push(input2);
 
-  // Setup the keyboards
-  playerLeft = new Keyboard('left', keysLeft, 1);
-  playerRight = new Keyboard('right', keysRight, 1);
+    // Setup the keyboards
+    playerLeft = new Keyboard('left', keysLeft, 1);
+    playerRight = new Keyboard('right', keysRight, 1);
 
-  //PLAYERS.push(...playerLeft, ...playerRight);
-  PLAYERS.push(playerLeft, playerRight);
-})
-.catch(err => console.log(err));
+    //PLAYERS.push(...playerLeft, ...playerRight);
+    PLAYERS.push(playerLeft, playerRight);
+  })
+  .catch(err => console.log(err));
+
 
 
 
 // p5 SETUP
 sketch.setup = () => {
-  createCanvas(1200, 900);
+  createCanvas(w, h);
   frameRate(20)
 
-  w = width;
-  h = height;
+
 
   // define ballX and ballY
   ballX = width / 2;
@@ -72,7 +74,7 @@ sketch.setup = () => {
   div.position(width / 2, height / 2);
 
   // Setup up the pong ball
-  let direction = createVector(random(-50, 50), random(-50, 50));
+  let direction = createVector(random(-25, 25), random(-25, 25));
   ball = new PongBall(width / 2, height / 2, 20, 2, direction);
 
 
