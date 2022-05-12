@@ -1,13 +1,14 @@
 import { Note } from '@tonaljs/tonal'
 
 export default class PianoKey {
-    constructor(note, x, y, height) {
+    constructor(note, x, y, width, height) {
         this.noteNumber = note;
         this.noteName = this.getNoteName(note);
         this.color = this.isBlack();
         this.x = x;
         this.y = y;
         this.height = height;
+        this.width = width;
     }
 
     /**
@@ -15,7 +16,7 @@ export default class PianoKey {
      */
     draw() {
         fill(this.isBlack());
-        rect(this.x, this.y, this.height, this.height);
+        rect(this.x, this.y, this.width, this.height);
     }
 
     // check whether the key is white or black

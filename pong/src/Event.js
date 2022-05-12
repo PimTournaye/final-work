@@ -4,4 +4,8 @@ class Event {
     constructor() {
         
     }
+
+    getRandomEvent(){
+        
+    }
 }

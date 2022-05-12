@@ -13,7 +13,6 @@ export default class Keyboard {
     // Extra check to make sure the keys are filled before drawing
     this.filledKeys = false;
 
-    //this.keys = this.fillNotes();
     // Range of the keyboard
     this.range;
     // Set the highest and lowest notes for this keyboard
@@ -36,7 +35,7 @@ export default class Keyboard {
   }
 
   setMIDIchannel(input) {
-    let channel = inputs[input].channels[1];   
+    let channel = inputs[input].channels[1];
     return channel;
   }
 
@@ -53,7 +52,7 @@ export default class Keyboard {
 
       for (let i = this.lowestNote; i <= this.highestNote; i++) {
         let currentNote = i;
-        let newKey = new PianoKey(currentNote, x, y, keyHeight)
+        let newKey = new PianoKey(currentNote, x, y, keyWidth, keyHeight)
 
         // if newKey is already in the array, don't add it again
         if (this.keys.includes(newKey)) {
@@ -70,31 +69,52 @@ export default class Keyboard {
   }
 
   getActiveNotes() {
-    // // if MIDI is not connected, stop this function
-    // if (this.MIDI_CHANNEL == undefined) {
-    //   return;
-    // }
-    // Try catch to make sure the MIDI device is connected, or to compensate for timing or syncing issues
+    // if MIDI is not connected, stop this function
+    if (this.MIDI_CHANNEL == undefined) {
+      return;
+    }
     try {
       this.MIDI_CHANNEL.addListener("noteon", e => {
-        // if the e.note.rawAttack is 0 (note velocity), remove it from the array to be sure in case noteoff doesn't work
-        if (e.note.rawAttack == 0) {
-          this.activeNotes = this.activeNotes.filter(note => note != e.note.number);
-        } else if (activeNotes.includes(e.note.number)) {
+        let newNote = e.note;
+        // Extra check to see if the note has stopped in case the MIDI device doesn't send noteoff messages
+        if (newNote.rawAttack == 0) {
           return;
-        } else {
-          this.activeNotes.push(e.note.number);
         }
+        if (this.activeNotes.length !== 0) {
+          let keyFound = this.findKey(newNote);
+          if (keyFound) {
+            return;
+          }
+        }
+        // match newNote with a PianoKey in this.keys and add that to active notes
+        let k = this.keys.find(key => new String(key.noteName).valueOf() == new String(newNote.identifier).valueOf());
+        if (k) {
+          this.activeNotes.push(k);
+        }
+        this.MIDI_CHANNEL.addListener("noteoff", e => {
+          let noteOff = e.note;
+          //remove the PianoKey from the activeNotes array if it match the noteNumber of the PianoKey
+          this.activeNotes = this.activeNotes.filter(note => note.noteName !== noteOff.identifier);
       });
-      this.MIDI_CHANNEL.addListener("noteoff", e => {
-        this.activeNotes.splice(this.activeNotes.indexOf(e.note.number), 1);
-      });
-      return this.activeNotes;
-
+    });
     } catch (error) {
       console.log(error);
     }
   }
+
+  findKey(note) {
+
+    let found = false;
+    console.log(this.activeNotes, note);
+    for (let i = 0; i < this.activeNotes.length; i++) {
+      if (this.activeNotes[i].noteName == note.identifier) {
+        found = true;
+        break;
+      }
+    }
+    return found;
+  }
+
 
   getRange() {
     try {
@@ -115,7 +135,7 @@ export default class Keyboard {
   drawKeys() {
     if (!this.filledKeys) {
       return;
-    }else if (this.keys.length <= 2) {
+    } else if (this.keys.length <= 2) {
       return;
     }
     this.keys.forEach(key => {
@@ -128,14 +148,38 @@ export default class Keyboard {
     if (this.activeNotes.length == 0) {
       return;
     }
-    //this.paddle().update();
+    // get the lowest and highest notes in the activeNotes array
+    let lowestActiveNote = this.activeNotes.reduce((prev, curr) => prev.noteNumber < curr.noteNumber ? prev : curr);
+    let highestActiveNote = this.activeNotes.reduce((prev, curr) => (prev.noteNumber > curr.noteNumber) ? prev : curr);
+
+    let coords = {
+      lowest: lowestActiveNote.y,
+      highest: highestActiveNote.y,
+    }
+
+    console.log(coords);
+    
+    this.paddle.update(coords.lowest, coords.highest - coords.lowest);
+    this.paddle.draw()
   }
 
+  displayActiveNotes() {
+    fill(255, 0, 255);
+    textSize(32);
+    let html = '';
+    let theDiv = document.getElementsByTagName('div')[0];
+    for (let i = 0; i < this.activeNotes.length; i++) {
+      html += `${this.activeNotes[i].noteName}, `;
+    }
+    theDiv.innerHTML = html;
+  }
 
   update() {
     this.getRange();
     this.fillNotes();
     this.drawKeys();
+    this.getActiveNotes();
+    this.displayActiveNotes();
     this.updatePaddle();
   }
 }
