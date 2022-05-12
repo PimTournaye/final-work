@@ -34,12 +34,11 @@ WebMidi
   .enable()
   .then(() => {
     console.log('WebMidi enabled!');
-
     WebMidi.inputs.forEach((device, index) => {
       console.log(`${index}: ${device.name}`);
     });
-    let input1 = WebMidi.getInputByName(name4);
-    let input2 = WebMidi.getInputByName(name4);
+    let input1 = WebMidi.getInputByName(name1);
+    let input2 = WebMidi.getInputByName(name1);
     inputs.push(input1);
     inputs.push(input2);
 
@@ -51,9 +50,6 @@ WebMidi
     PLAYERS.push(playerLeft, playerRight);
   })
   .catch(err => console.log(err));
-
-
-
 
 // p5 SETUP
 sketch.setup = () => {
@@ -166,70 +162,4 @@ function displayActiveNotes() {
     html += `${activeNotes[i]}, `;
   }
   theDiv.innerHTML = html;
-}
-
-function drawPianoKeys(side) {
-  if (side == 'left') {
-    let y = 0;
-    let keyWidth = 60;
-    let keyHeight = height / (highestNoteLeft - lowestNoteLeft + 1);
-    for (let i = lowestNoteLeft; i <= highestNoteLeft; i++) {
-      let key = i;
-      let keyColor = color(255);
-      // check for black piano keys and change color in the range of the lowest note to the highest note
-      if (key % 12 == 1 || key % 12 == 3 || key % 12 == 6 || key % 12 == 8 || key % 12 == 10) {
-        keyColor = color(0);
-      }
-      // if a key is played on the connected MIDI device, draw the key as red
-
-      fill(keyColor);
-      rect(0, y, keyWidth, keyHeight);
-
-      // change y position for next key
-      y += keyHeight;
-    }
-  } else if (side == 'right') {
-    let y = 0;
-    let keyWidth = 60;
-    let keyHeight = height / (highestNoteRight - lowestNoteRight + 1);
-    for (let i = lowestNoteRight; i <= highestNoteRight; i++) {
-      let key = i;
-      let keyColor = color(255);
-      // check for black piano keys and change color in the range of the lowest note to the highest note
-      if (key % 12 == 1 || key % 12 == 3 || key % 12 == 6 || key % 12 == 8 || key % 12 == 10) {
-        keyColor = color(0);
-      }
-      // if a key is played on the connected MIDI device, draw the key as red
-      fill(keyColor);
-      rect(width - keyWidth, y, keyWidth, keyHeight);
-
-      // change y position for next key
-      y += keyHeight;
-    }
-  }
-}
-
-function getKeyboardRange() {
-  try {
-    inputs[0].addListener("noteon", e => {
-      if (e.note.number > highestNoteRight) {
-        highestNoteRight = e.note.number;
-      }
-      if (e.note.number < lowestNoteRight) {
-        lowestNoteRight = e.note.number;
-      }
-    });
-
-    inputs[0].addListener("noteon", e => {
-      if (e.note.number > highestNoteLeft) {
-        highestNoteLeft = e.note.number;
-      }
-      if (e.note.number < lowestNoteLeft) {
-        lowestNoteLeft = e.note.number;
-      }
-    });
-
-  } catch (error) {
-    console.log(error);
-  }
 }
