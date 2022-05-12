@@ -2,22 +2,25 @@ import { Note } from '@tonaljs/tonal'
 
 export default class PianoKey {
     constructor(note, x, y, height) {
-        this.note = this.getNoteName(note);
+        this.noteNumber = note;
+        this.noteName = this.getNoteName(note);
         this.color = this.isBlack();
         this.x = x;
         this.y = y;
         this.height = height;
     }
 
-    // draw this key
+    /**
+     * This draws the key on the screen
+     */
     draw() {
-        fill(this.color);
+        fill(this.isBlack());
         rect(this.x, this.y, this.height, this.height);
     }
 
     // check whether the key is white or black
     isBlack() {
-        if (this.note % 12 == 1 || this.note % 12 == 3 || this.note % 12 == 6 || this.note % 12 == 8 || this.note % 12 == 10) {
+        if (this.noteNumber % 12 == 1 || this.noteNumber % 12 == 3 || this.noteNumber % 12 == 6 || this.noteNumber % 12 == 8 || this.noteNumber % 12 == 10) {
             return 0;
         } else {
             return 255;
