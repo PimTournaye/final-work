@@ -10,6 +10,8 @@ export default class Keyboard {
     this.side = side;
     // Set the keys this keyboard has
     this.keys = keys;
+    // Extra check to make sure the keys are filled before drawing
+    this.filledKeys = false;
 
     //this.keys = this.fillNotes();
     // Range of the keyboard
@@ -39,6 +41,7 @@ export default class Keyboard {
   }
 
   fillNotes() {
+    this.keys = [];
     try {
       let keyWidth = 60;
       let keyHeight = height / (this.highestNote - this.lowestNote + 1);
@@ -52,12 +55,15 @@ export default class Keyboard {
         let currentNote = i;
         let newKey = new PianoKey(currentNote, x, y, keyHeight)
 
-        // if this.keys already has the same key that was just generated, skip it
-        // if (!this.keys.contains(newKey)) {
-        //   this.keys.push(newKey)
-        // }
+        // if newKey is already in the array, don't add it again
+        if (this.keys.includes(newKey)) {
+          continue;
+        } else {
+          this.keys.push(newKey);
+        }
         y += keyHeight;
       }
+      this.filledKeys = true;
     } catch (error) {
       console.log(error)
     }
@@ -73,17 +79,17 @@ export default class Keyboard {
       this.MIDI_CHANNEL.addListener("noteon", e => {
         // if the e.note.rawAttack is 0 (note velocity), remove it from the array to be sure in case noteoff doesn't work
         if (e.note.rawAttack == 0) {
-          activeNotes = activeNotes.filter(note => note != e.note.number);
+          this.activeNotes = this.activeNotes.filter(note => note != e.note.number);
         } else if (activeNotes.includes(e.note.number)) {
           return;
         } else {
-          activeNotes.push(e.note.number);
+          this.activeNotes.push(e.note.number);
         }
       });
       this.MIDI_CHANNEL.addListener("noteoff", e => {
-        activeNotes.splice(activeNotes.indexOf(e.note.number), 1);
+        this.activeNotes.splice(this.activeNotes.indexOf(e.note.number), 1);
       });
-      return activeNotes;
+      return this.activeNotes;
 
     } catch (error) {
       console.log(error);
@@ -107,12 +113,12 @@ export default class Keyboard {
   }
 
   drawKeys() {
-    if (this.keys.length == 0) {
+    if (!this.filledKeys) {
+      return;
+    }else if (this.keys.length <= 2) {
       return;
     }
-    console.log(this.keys);
     this.keys.forEach(key => {
-      console.log(key);
       key.draw();
     });
   }
@@ -128,8 +134,8 @@ export default class Keyboard {
 
   update() {
     this.getRange();
-    this.fillNotes()
-    //this.drawKeys()
+    this.fillNotes();
+    this.drawKeys();
     this.updatePaddle();
   }
 }
