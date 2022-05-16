@@ -13,19 +13,21 @@ export default class Keyboard {
     // Extra check to make sure the keys are filled before drawing
     this.filledKeys = false;
 
+    this.keyWidth = 60;
+
     // Range of the keyboard
     this.range;
     // Set the highest and lowest notes for this keyboard
     this.highestNote = keys.length - 1;
     this.lowestNote = keys[0];
 
-    // Active / Played notes at this moment
+    // Active / played notes at this moment
     this.activeNotes = [];
 
     // Give the keyboard it's paddle
     this.paddleX = () => {
       if (this.side == 'left') {
-        return 0;
+        return 0 + 60;
       } else {
         return width - 60 - 10;
       }
@@ -34,25 +36,33 @@ export default class Keyboard {
     this.paddle = new Paddle(this.paddleX(), this.lowestNote, this.highestNote);
   }
 
+  /**
+   * Sets up the MIDI channel for this Keyboard object
+   * @param {WebMidi.MIDIInput} WebMidi.getInputBy name, ID, or other methods
+   * @returns {WebMidi.MIDIInput} A WebMidi input channel to play and read midi messages from
+   */
   setMIDIchannel(input) {
     let channel = inputs[input].channels[1];
     return channel;
   }
 
+  /**
+   * Fill the keys array with PianoKey objects
+   * @returns {void} nothing
+   */
   fillNotes() {
     this.keys = [];
     try {
-      let keyWidth = 60;
       let keyHeight = height / (this.highestNote - this.lowestNote + 1);
       let x;
       let y = 0;
       if (this.side == 'left') {
         x = 0;
-      } else x = width - keyWidth;
+      } else x = width - this.keyWidth;
 
       for (let i = this.lowestNote; i <= this.highestNote; i++) {
         let currentNote = i;
-        let newKey = new PianoKey(currentNote, x, y, keyWidth, keyHeight)
+        let newKey = new PianoKey(currentNote, x, y, this.keyWidth, keyHeight)
 
         // if newKey is already in the array, don't add it again
         if (this.keys.includes(newKey)) {
@@ -68,6 +78,12 @@ export default class Keyboard {
     }
   }
 
+// TODO: Check for accidentals, playing a white note with a black one doesn't trigger the paddle
+
+  /**
+   * Reads the midi messages from the input channel and adds the notes to the activeNotes array
+   * @returns {void} nothing
+   */
   getActiveNotes() {
     // if MIDI is not connected, stop this function
     if (this.MIDI_CHANNEL == undefined) {
@@ -95,17 +111,20 @@ export default class Keyboard {
           let noteOff = e.note;
           //remove the PianoKey from the activeNotes array if it match the noteNumber of the PianoKey
           this.activeNotes = this.activeNotes.filter(note => note.noteName !== noteOff.identifier);
+        });
       });
-    });
     } catch (error) {
       console.log(error);
     }
   }
 
+  /**
+   * Checks if a PianoKey is in the activeNotes array
+   * @param {WebMidi.Note} note 
+   * @returns {boolean} true if the given note is already in the activeNotes array
+   */
   findKey(note) {
-
     let found = false;
-    console.log(this.activeNotes, note);
     for (let i = 0; i < this.activeNotes.length; i++) {
       if (this.activeNotes[i].noteName == note.identifier) {
         found = true;
@@ -115,7 +134,10 @@ export default class Keyboard {
     return found;
   }
 
-
+  /**
+   * Get the range of the keyboard, based on the lowest and highest notes in the keys array
+   * @returns {void} nothing
+   */
   getRange() {
     try {
       this.MIDI_CHANNEL.addListener("noteon", e => {
@@ -132,6 +154,10 @@ export default class Keyboard {
     }
   }
 
+  /**
+   * Draws a PianoKey object to the screen for each element in the keys array
+   * @returns {void} nothing
+   */
   drawKeys() {
     if (!this.filledKeys) {
       return;
@@ -143,9 +169,15 @@ export default class Keyboard {
     });
   }
 
-  updatePaddle() {
+  /**
+   * Draws the paddle to the screen based on the notes in the activeNotes array
+   * @returns {void} nothing
+   */
+  handlePaddle() {
     // If there are no active notes, stop this function
-    if (this.activeNotes.length == 0) {
+    if (this.activeNotes.length <= 1) {
+      // putting paddle out of bounds to be sure nothing funky happens
+      this.paddle.active = false;
       return;
     }
     // get the lowest and highest notes in the activeNotes array
@@ -157,12 +189,12 @@ export default class Keyboard {
       highest: highestActiveNote.y,
     }
 
-    console.log(coords);
-    
-    this.paddle.update(coords.lowest, coords.highest - coords.lowest);
+    this.paddle.updateRect(coords.lowest, coords.highest - coords.lowest);
     this.paddle.draw()
+
   }
 
+  // This is for debugging purposes
   displayActiveNotes() {
     fill(255, 0, 255);
     textSize(32);
@@ -174,12 +206,15 @@ export default class Keyboard {
     theDiv.innerHTML = html;
   }
 
+  /**
+   * Updates the entire Keyboard object
+   */
   update() {
     this.getRange();
     this.fillNotes();
     this.drawKeys();
     this.getActiveNotes();
     this.displayActiveNotes();
-    this.updatePaddle();
+    this.handlePaddle();
   }
 }
