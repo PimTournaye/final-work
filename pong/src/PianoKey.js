@@ -30,7 +30,7 @@ export default class PianoKey {
 
     // convert MIDI number to note name using Tonal.js
     getNoteName(note) {
-        return Note.fromMidi(note);
+        return Note.fromMidiSharps(note);
     }
 
 }
