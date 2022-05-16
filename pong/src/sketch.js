@@ -15,19 +15,15 @@ let highestNoteRight = 54;
 let highestNoteLeft = 55;
 
 let ballX, ballY, div;
-let activeNotes = [];
 
 export let w = 1200;
 export let h = 900
 export let inputs = [];
-let keyboard1, keyboard2
 
 let playerLeft, playerRight;
-let PLAYERS = [];
-
+export let PLAYERS = [];
 export let [keysLeft, keysRight] = [[54], [54]];
-
-let ball;
+export let ball;
 
 // MIDI SETUP
 WebMidi
@@ -87,7 +83,6 @@ sketch.draw = () => {
     keyboard.update();
   });
 
+  ball.checkCollision();
 
-  //drawPaddle('right');
-  //displayActiveNotes();
 }
