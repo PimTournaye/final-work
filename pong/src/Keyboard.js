@@ -186,7 +186,7 @@ export default class Keyboard {
 
     let coords = {
       lowest: lowestActiveNote.y,
-      highest: highestActiveNote.y,
+      highest: highestActiveNote.y + highestActiveNote.height, // add the height of the key to the y coordinate as to cover the last key
     }
 
     this.paddle.updateRect(coords.lowest, coords.highest - coords.lowest);
@@ -208,6 +208,7 @@ export default class Keyboard {
 
   /**
    * Updates the entire Keyboard object
+   * @returns {void} nothing
    */
   update() {
     this.getRange();
