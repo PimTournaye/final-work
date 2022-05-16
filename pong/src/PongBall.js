@@ -1,5 +1,5 @@
-import { w, h } from "./sketch";
-
+import Keyboard from "./Keyboard";
+import { w, h, PLAYERS } from "./sketch";
 export default class PongBall {
     constructor(x, y, radius, speed, direction) {
         this.x = x;
@@ -39,7 +39,18 @@ export default class PongBall {
 
     // check collisions with paddles or event blocks
     checkCollision() {
+        PLAYERS.forEach(Keyboard => {
+            let paddle = Keyboard.paddle;
+            let side = Keyboard.side;
+            if (side === 'left') {
+                if (this.x - this.radius < paddle.x + paddle.width) {
+                    this.direction.x *= -1;
+                    console.log('bounced on left paddle');
+                }
+            }
     
+        });
+
     }
 
     // change direction of the ball
@@ -47,7 +58,7 @@ export default class PongBall {
         this.direction = direction;
     }
 
-    update(){
+    update() {
         this.draw()
         this.move();
         //this.checkCollision();
