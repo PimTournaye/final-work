@@ -12,8 +12,10 @@ export default class Keyboard {
     this.keys = keys;
     // Extra check to make sure the keys are filled before drawing
     this.filledKeys = false;
-
+    // set a standard key width for drawing individual PianoKey objects
     this.keyWidth = 60;
+    // set a standard paddle width for drawing the paddle
+    this.paddleWidth = 10;
 
     // Range of the keyboard
     this.range;
@@ -24,16 +26,13 @@ export default class Keyboard {
     // Active / played notes at this moment
     this.activeNotes = [];
 
-    // Give the keyboard it's paddle
+    // Set the X coordinate for the paddle depending on which side of the screen the keyboard is on
     this.paddleX = () => {
-      if (this.side == 'left') {
-        return 0 + 60;
-      } else {
-        return width - 60 - 10;
-      }
+      if (this.side == 'left') return 0 + this.keyWidth;
+      else return width - this.keyWidth - this.paddleWidth;
     }
     // Make a Paddle object for this keyboard
-    this.paddle = new Paddle(this.paddleX(), this.lowestNote, this.highestNote);
+    this.paddle = new Paddle(this.paddleX(), this.paddleWidth, this.lowestNote, this.highestNote);
   }
 
   /**
@@ -78,8 +77,6 @@ export default class Keyboard {
     }
   }
 
-// TODO: Check for accidentals, playing a white note with a black one doesn't trigger the paddle
-
   /**
    * Reads the midi messages from the input channel and adds the notes to the activeNotes array
    * @returns {void} nothing
@@ -121,7 +118,7 @@ export default class Keyboard {
   /**
    * Checks if a PianoKey is in the activeNotes array
    * @param {WebMidi.Note} note 
-   * @returns {boolean} true if the given note is already in the activeNotes array
+   * @returns {boolean} true if the given note is already in the this.activeNotes array
    */
   findKey(note) {
     let found = false;
@@ -164,6 +161,7 @@ export default class Keyboard {
     } else if (this.keys.length <= 2) {
       return;
     }
+
     this.keys.forEach(key => {
       key.draw();
     });
@@ -182,7 +180,7 @@ export default class Keyboard {
     }
     // get the lowest and highest notes in the activeNotes array
     let lowestActiveNote = this.activeNotes.reduce((prev, curr) => prev.noteNumber < curr.noteNumber ? prev : curr);
-    let highestActiveNote = this.activeNotes.reduce((prev, curr) => (prev.noteNumber > curr.noteNumber) ? prev : curr);
+    let highestActiveNote = this.activeNotes.reduce((prev, curr) => prev.noteNumber > curr.noteNumber ? prev : curr);
 
     let coords = {
       lowest: lowestActiveNote.y,
@@ -191,9 +189,7 @@ export default class Keyboard {
 
     this.paddle.updateRect(coords.lowest, coords.highest - coords.lowest);
     this.paddle.draw()
-
   }
-
   // This is for debugging purposes
   displayActiveNotes() {
     fill(255, 0, 255);
