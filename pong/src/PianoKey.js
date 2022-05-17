@@ -12,14 +12,18 @@ export default class PianoKey {
     }
 
     /**
-     * This draws the key on the screen
+     * This draws the key on the screen along with it's correct color
+     * @returns {void} nothing
      */
     draw() {
         fill(this.isBlack());
         rect(this.x, this.y, this.width, this.height);
     }
 
-    // check whether the key is white or black
+    /**
+     * Check whether the note is black or white, depending on the note's MIDI number
+     * @returns {number} a greyscale value from 0-255
+     */
     isBlack() {
         if (this.noteNumber % 12 == 1 || this.noteNumber % 12 == 3 || this.noteNumber % 12 == 6 || this.noteNumber % 12 == 8 || this.noteNumber % 12 == 10) {
             return 0;
@@ -28,7 +32,11 @@ export default class PianoKey {
         }
     }
 
-    // convert MIDI number to note name using Tonal.js
+    /**
+     * Convert the this PianoKey's MIDI note number to a note name (e.g. C#4)
+     * @param {number} noteNumber the MIDI number of the note
+     * @returns {string} the note name with the correct octave and accidental converted to sharps
+     */
     getNoteName(note) {
         return Note.fromMidiSharps(note);
     }
