@@ -1,8 +1,8 @@
 export default class Paddle {
-    constructor(x, lowestActive, highestActive) {
+    constructor(x, width, lowestActive, highestActive) {
         this.x = x;
         this.y = lowestActive;
-        this.width = 10;
+        this.width = width;
         this.height = highestActive - lowestActive;
         this.active = false;
     }
