@@ -93,6 +93,7 @@ export default class Keyboard {
         if (newNote.rawAttack == 0) {
           return;
         }
+        // if there's something in the activeNotes array and the note is already in the activeNotes array, don't add it again
         if (this.activeNotes.length !== 0) {
           let keyFound = this.findKey(newNote);
           if (keyFound) {
@@ -164,6 +165,7 @@ export default class Keyboard {
 
     this.keys.forEach(key => {
       key.draw();
+      // if the key is active, draw it as red
     });
   }
 
@@ -186,7 +188,7 @@ export default class Keyboard {
       lowest: lowestActiveNote.y,
       highest: highestActiveNote.y + highestActiveNote.height, // add the height of the key to the y coordinate as to cover the last key
     }
-
+    this.paddle.active = true;
     this.paddle.updateRect(coords.lowest, coords.highest - coords.lowest);
     this.paddle.draw()
   }
