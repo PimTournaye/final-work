@@ -16,7 +16,7 @@ export default class PianoKey {
      * @returns {void} nothing
      */
     draw() {
-        fill(this.isBlack());
+        fill(this.color);
         rect(this.x, this.y, this.width, this.height);
     }
 
@@ -30,6 +30,13 @@ export default class PianoKey {
         } else {
             return 255;
         }
+    }
+
+    /**
+     * Colors the color of the PianoKey object as red when it is active
+     */
+    isActive() {
+        this.color = 'red'
     }
 
     /**
