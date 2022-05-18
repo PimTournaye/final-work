@@ -43,9 +43,17 @@ export default class PongBall {
             let paddle = Keyboard.paddle;
             let side = Keyboard.side;
             if (side === 'left') {
-                if (this.x - this.radius < paddle.x + paddle.width) {
+                if (!paddle.active) {
+                    console.log('not active');
+                    return;
+                }
+                if (!(this.x - this.radius < paddle.x + paddle.width)) {
+                    console.log('no collision on x axis');
+                    return;
+                }
+                if (this.y - this.radius > paddle.y && this.y + this.radius < paddle.height) {
                     this.direction.x *= -1;
-                    console.log('bounced on left paddle');
+                    console.log('bounced on paddle');
                 }
             }
     
