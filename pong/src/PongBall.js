@@ -19,19 +19,19 @@ export default class PongBall {
         this.x += this.speed * this.direction.x;
         this.y += this.speed * this.direction.y;
         // bounce off walls
-        if (this.x < 0) {
+        if (this.x - this.radius < 0) {
             this.x = 0;
             this.direction.x *= -1;
         }
-        if (this.x > w) {
+        if (this.x + this.radius > w) {
             this.x = w;
             this.direction.x *= -1;
         }
-        if (this.y < 0) {
+        if (this.y - this.radius < 0) {
             this.y = 0;
             this.direction.y *= -1;
         }
-        if (this.y > h) {
+        if (this.y + this.radius > h) {
             this.y = h;
             this.direction.y *= -1;
         }
@@ -39,11 +39,15 @@ export default class PongBall {
 
     // check collisions with paddles or event blocks
     checkCollision() {
+        console.log(1, PLAYERS[0].paddle.active);
+        console.log('PKLAYERS', PLAYERS);
         PLAYERS.forEach(Keyboard => {
             let paddle = Keyboard.paddle;
             let side = Keyboard.side;
+            let active = paddle.active;
             if (side === 'left') {
-                if (!paddle.active) {
+                console.log('last test before collison check: ', active);
+                if (!active) {
                     console.log('not active');
                     return;
                 }
@@ -55,6 +59,19 @@ export default class PongBall {
                     this.direction.x *= -1;
                     console.log('bounced on paddle');
                 }
+            // } else {
+            //     if (!paddle.active) {
+            //         console.log('not active');
+            //         return;
+            //     }
+            //     if (!(this.x + this.radius > paddle.x)) {
+            //         console.log('no collision on x axis');
+            //         return;
+            //     }
+            //     if (this.y - this.radius > paddle.y && this.y + this.radius < paddle.height) {
+            //         this.direction.x *= -1;
+            //         console.log('bounced on paddle');
+            //     }
             }
     
         });
