@@ -75,5 +75,5 @@ sketch.draw = () => {
     keyboard.update();
   });
 
-  ball.checkCollision();
+  ball.checkCollision(PLAYERS);
 }
