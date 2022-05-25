@@ -18,12 +18,15 @@ const int piano1Pin = 'A1';
 const int piano2Pin = 'A2';
 const int drumsPin = 'A3';
 const int bassPin = 'A4';
+const int speedPin = 'A5';
 
 void setup() {  
   Serial.begin(115200);
 
+// Set up pins
   pinMode(masterSliderPin, INPUT);
   pinMode(circleOfFifthsPin, INPUT);
+  pinMode(speedPin, INPUT);
   pinMode(piano1Pin, INPUT);
   pinMode(piano2Pin, INPUT);
   pinMode(drumsPin, INPUT);
@@ -40,6 +43,16 @@ void setup() {
   Serial.println(WiFi.localIP());
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
+int count = 0;
+
+void loop(){
+    client.loop();
+    count++;
+    if (count == 18000){
+        count = 0;
+
+        // Send data to Server
+        //client.emit("status", "Hello from esp32!");
+        client.send(String, "Hello from esp32!");
+    }
 }
