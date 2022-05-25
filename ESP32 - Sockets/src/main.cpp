@@ -1,9 +1,11 @@
 #include <Arduino.h>
 
 #include <WiFi.h>
+#include <WiFiMulti.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <SocketIOclient.h>
+#include <ArduinoJson.h>
 
 SocketIOclient client;
 
@@ -53,6 +55,5 @@ void loop(){
 
         // Send data to Server
         //client.emit("status", "Hello from esp32!");
-        client.send(String, "Hello from esp32!");
     }
 }

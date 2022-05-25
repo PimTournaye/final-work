@@ -3,3 +3,12 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+**.**yml
+.github
+.gitignore
+.clang-format
+**/travis
+
+**/examples
+**/LICENSE**
+
