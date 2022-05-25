@@ -38,40 +38,33 @@ export default class PongBall {
     }
 
     // check collisions with paddles or event blocks
-    checkCollision() {
-        console.log(1, PLAYERS[0].paddle.active);
-        console.log('PKLAYERS', PLAYERS);
+    checkCollision(PLAYERS) {
         PLAYERS.forEach(Keyboard => {
             let paddle = Keyboard.paddle;
             let side = Keyboard.side;
             let active = paddle.active;
             if (side === 'left') {
-                console.log('last test before collison check: ', active);
                 if (!active) {
-                    console.log('not active');
                     return;
                 }
                 if (!(this.x - this.radius < paddle.x + paddle.width)) {
-                    console.log('no collision on x axis');
                     return;
                 }
                 if (this.y - this.radius > paddle.y && this.y + this.radius < paddle.height) {
                     this.direction.x *= -1;
-                    console.log('bounced on paddle');
+                    console.log('bounced on paddle - left');
                 }
-            // } else {
-            //     if (!paddle.active) {
-            //         console.log('not active');
-            //         return;
-            //     }
-            //     if (!(this.x + this.radius > paddle.x)) {
-            //         console.log('no collision on x axis');
-            //         return;
-            //     }
-            //     if (this.y - this.radius > paddle.y && this.y + this.radius < paddle.height) {
-            //         this.direction.x *= -1;
-            //         console.log('bounced on paddle');
-            //     }
+            } else {
+                if (!paddle.active) {
+                    return;
+                }
+                if (!(this.x + this.radius > paddle.x)) {
+                    return;
+                }
+                if (this.y - this.radius > paddle.y && this.y + this.radius < paddle.height) {
+                    this.direction.x *= -1;
+                    console.log('bounced on paddle - right');
+                }
             }
     
         });
