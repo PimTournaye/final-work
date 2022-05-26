@@ -1,46 +1,27 @@
-function KeyPad({setText, text}){
+import { WebMidi } from 'webmidi'
+import { config } from './config'
+
 const keysValues = [
-    { type: "single", value: " " },
-    { type: "multiple", value: "abc" },
-    { type: "multiple", value: "def" },
-    { type: "multiple", value: "ghi" },
-    { type: "multiple", value: "jkl" },
-    { type: "multiple", value: "mno" },
-    { type: "multiple", value: "pqrs" },
-    { type: "multiple", value: "tuv" },
-    { type: "multiple", value: "wxyz" },
-    { type: "single", value: "REMOVE" },
+    { type: "multiple", value: "abc",  MIDI: "C2" },
+    { type: "multiple", value: "def",  MIDI: "G2" },
+    { type: "multiple", value: "ghi",  MIDI: "C3" },
+    { type: "multiple", value: "jkl",  MIDI: "G3" },
+    { type: "multiple", value: "mno",  MIDI: "C4" },
+    { type: "multiple", value: "pqrs", MIDI: "G4" },
+    { type: "multiple", value: "tuv",  MIDI: "C5" },
+    { type: "multiple", value: "wxyz", MIDI: "G5" },
   ];
 
-let time = {start: 0, end: 0};
-let timer: any;
+  const numberValues = [
+    { type: "single", value: "1", MIDI: "D2" },
+    { type: "single", value: "2", MIDI: "A2" },
+    { type: "single", value: "3", MIDI: "D3" },
+    { type: "single", value: "4", MIDI: "A3" },
+    { type: "single", value: "5", MIDI: "D4" },
+    { type: "single", value: "6", MIDI: "A4" },
+    { type: "single", value: "7", MIDI: "D5" },
+    { type: "single", value: "8", MIDI: "A5" },
+    { type: "single", value: "9", MIDI: "D6" },
+    { type: "single", value: "0", MIDI: "A6" },
+  ];
 
-const onActivated = () => {
-    time.start = Date.now();
-    }
-
-const onDeactivated = () => {
-    const newTime = {start: time.start, end: Date.now()};
-    time = newTime;
-    if (newTime.end - newTime.start > 1000) {
-        if (timer.current === null) {
-          let newText = {
-            previousValue: text.current.previousValue + keysValues[index].longPressValue,
-            currentValue: "",
-          };
-          setText(newText);
-        } else {
-          clearTimeout(timer.current);
-          timer.current = null;
-          setText({
-            previousValue:
-              text.current.previousValue +
-              text.current.currentValue +
-              keysValues[index].longPressValue,
-            currentValue: "",
-          });
-        }
-        setIsLongPressed(true);
-      }
-    }
-}
