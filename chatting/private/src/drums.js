@@ -51,12 +51,14 @@ let sendMessage = () => {
 function MIDIKeyPad() {
   // One big object with all the keys of the keypad 
   const padValues = [...keysValues, ...numberValues];
+
   // Timer variables
   let time = { start: 0, end: 0 };
   let timerOver = false;
 
   // Variables to make a message with
   let message = '';
+  let characters;
 
   // Note variables
   let note = {
@@ -70,25 +72,26 @@ function MIDIKeyPad() {
   MIDI.addListener('noteon', (e) => {
     time.start = Date.now();
   });
-
+  
   MIDI.addListener('noteoff', (e) => {
     // Timer for keypad
     time.end = Date.now();
     // Get the note as a string, eg. 'C3'
     note.current = e.note.identifier;
+    console.log(time, 'difference', time.end - time.start);
 
-    // If the difference between the start and end time is greater than the timer delay, set the timerOver to true and reset the counter
-    if (time.end - time.start > config.KEYPAD_TIMER_DELAY) {
+    // If the difference between the start and end time is greater than the timer delay or if the note is diffferent from the previous note, set the timerOver to true and reset the counter
+    if (time.end - time.start > config.KEYPAD_TIMER_DELAY || note.current != note.previous) {
       timerOver = true;
       counter = 0;
     } else timerOver = false;
 
     // If the timer is over, proceed as normal
     if (timerOver) {
-      // Match note with a padValues.MIDI key in the padValues object
-      const characters = padValues.find(padValue => padValue.MIDI === note);
+      // Match note with a padValues.MIDI key in the padValues object to get that key's characters
+      characters = padValues.find(padValue => padValue.MIDI === note);
       // If the padValue is found, add the character to the message string
-      if (padValue) {
+      if (typeof characters != 'undefined' || characters != null) {
         // Add the needed character padValue to the message string
         let character = characters.charAt(counter);
         message += character;
@@ -103,19 +106,7 @@ function MIDIKeyPad() {
       let newCharacter = characters.find(padValue => padValue.MIDI === note).charAt(counter);
       message += newCharacter;
     }
-
-
-
-    // Match note with a padValues.MIDI key in the padValues object
-    const padValue = padValues.find(padValue => padValue.MIDI === note);
-
-    if (padValue) {
-      // Add the first character padValue to the message
-      message += padValue.charAt(counter);
-    } else console.log('There was an error with the noteoff event', e.note);
-
-
-
+    // Set the previous note to the current note
     note.previous = note.current
   });
 
