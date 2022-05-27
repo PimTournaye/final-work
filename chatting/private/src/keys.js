@@ -1,7 +1,4 @@
-import { WebMidi } from 'webmidi'
-import { config } from './config'
-
-const keysValues = [
+export const keysValues = [
     { type: "multiple", value: "abc",  MIDI: "C2" },
     { type: "multiple", value: "def",  MIDI: "G2" },
     { type: "multiple", value: "ghi",  MIDI: "C3" },
@@ -12,7 +9,7 @@ const keysValues = [
     { type: "multiple", value: "wxyz", MIDI: "G5" },
   ];
 
-  const numberValues = [
+export const numberValues = [
     { type: "single", value: "1", MIDI: "D2" },
     { type: "single", value: "2", MIDI: "A2" },
     { type: "single", value: "3", MIDI: "D3" },
@@ -24,4 +21,3 @@ const keysValues = [
     { type: "single", value: "9", MIDI: "D6" },
     { type: "single", value: "0", MIDI: "A6" },
   ];
-
