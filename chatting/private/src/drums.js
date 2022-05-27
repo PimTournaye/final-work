@@ -11,8 +11,16 @@ const port = new SerialPort({ path: config.SERIAL_PORT_PATH, baudRate: config.BA
 })
 
 // Socket.io initialization
-import { io } from "socket.io-client";
-let socket = io();
+import { Server } from "socket.io";
+const SOCKET_PORT = 3000;
+let io = new Server(SOCKET_PORT);
+
+io.on('connection', (socket) => {
+  console.log('a user connected');
+  socket.on('chat message', (msg) => {
+    console.log('chat message', msg);
+  });
+});
 
 // MIDI initialization
 import { WebMidi } from 'webmidi'
@@ -25,58 +33,90 @@ WebMidi.enable()
   })
   .catch(err => console.log(err));
 
-// DOM elements
-let input = document.getElementById('input');
-let messages = document.getElementById('messages');
-
-
 /**
  * Sends a message to the chat room through the socket.io server.
  * @param {*} event 
  */
 let sendMessage = () => {
-  if (input.value) {
-    socket.emit('chat message', input.value);
-    input.value = '';
+  if (message.length != 0) {
+    socket.emit('chat message', message);
+    message = '';
   } else console.log('No message to send');
 }
 
-// Getting other users' messages through the socket.io server
-socket.on('chat message', function (msg) {
-  let item = document.createElement('li');
-  item.textContent = msg;
-  messages.appendChild(item);
-  window.scrollTo(0, document.body.scrollHeight);
-});
 
 ///////////////
 // Main Loop //
 ///////////////
-function MIDIKeyPad({ setText, text }) {
+function MIDIKeyPad() {
   // One big object with all the keys of the keypad 
   const padValues = [...keysValues, ...numberValues];
   // Timer variables
   let time = { start: 0, end: 0 };
-  let timer;
+  let timerOver = false;
+
+  // Variables to make a message with
+  let message = '';
+
+  // Note variables
+  let note = {
+    previous: '',
+    current: '',
+  }
+  // Counter for keeping track of represses of a key
+  let counter = 0;
 
   // MIDI event listeners
   MIDI.addListener('noteon', (e) => {
-
+    time.start = Date.now();
   });
 
   MIDI.addListener('noteoff', (e) => {
+    // Timer for keypad
+    time.end = Date.now();
     // Get the note as a string, eg. 'C3'
-    const note = e.note.identifier;
-    // Variable to make messages with
-    let message = '';
+    note.current = e.note.identifier;
+
+    // If the difference between the start and end time is greater than the timer delay, set the timerOver to true and reset the counter
+    if (time.end - time.start > config.KEYPAD_TIMER_DELAY) {
+      timerOver = true;
+      counter = 0;
+    } else timerOver = false;
+
+    // If the timer is over, proceed as normal
+    if (timerOver) {
+      // Match note with a padValues.MIDI key in the padValues object
+      const characters = padValues.find(padValue => padValue.MIDI === note);
+      // If the padValue is found, add the character to the message string
+      if (padValue) {
+        // Add the needed character padValue to the message string
+        let character = characters.charAt(counter);
+        message += character;
+      } else console.log('There was an error with the noteoff event', e.note);
+    // If the note is the same as the previous note, it's a repress, which increments the counter
+    } else if (note.current === note.previous && timerOver == false) {
+      counter++;
+      // If the counter is greater than the length of the character, reset the counter
+      if (counter > characters.length) counter = 0;
+      // Remove the last character from the message string and replace it with charAt(counter)
+      message = message.slice(0, -1)
+      let newCharacter = characters.find(padValue => padValue.MIDI === note).charAt(counter);
+      message += newCharacter;
+    }
+
+
 
     // Match note with a padValues.MIDI key in the padValues object
     const padValue = padValues.find(padValue => padValue.MIDI === note);
-    // If the padValue is found, send the value to the chat room
+
     if (padValue) {
       // Add the first character padValue to the message
-      message += padValue.value[0];
+      message += padValue.charAt(counter);
     } else console.log('There was an error with the noteoff event', e.note);
+
+
+
+    note.previous = note.current
   });
 
 
@@ -87,13 +127,14 @@ function MIDIKeyPad({ setText, text }) {
       // Send the message on crash cymbal hit
       case config.CRASH_MESSAGE:
         sendMessage();
+        counter = 0;
         break;
       // Remove the last character from the input on hihats cymbals closing
       case config.HIHAT_MESSAGE:
-        input.value = input.value.slice(0, -1);
+        message = message.slice(0, -1);
       // Insert a space into the message / input box when playing the kick drum
       case config.KICK_MESSAGE:
-        input.value += ' ';
+        message += ' ';
       default:
         console.log('No match');
         break;
