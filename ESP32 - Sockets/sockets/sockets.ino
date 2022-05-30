@@ -16,7 +16,9 @@ SocketIOclient socketIO;
 // Network configuration
 const char *ssid = "REPLACE_WITH_YOUR_SSID";
 const char *password = "REPLACE_WITH_YOUR_PASSWORD";
-const char *host = "INSERT HERE HOST ADDRESS";
+
+IPAddress socketIP(192, 168, 2, 232);
+int socketPORT = 8880;
 
 // Control panel pins
 int masterSliderPin = 26;  // A0
@@ -31,6 +33,8 @@ int rotaryPinB = 14;       // D14
 int rotaryCounter = 0;
 int rotaryAState;
 int rotaryALastState;
+
+Adafruit_NeoPixel pixels(12, pixelRing, NEO_GRB + NEO_KHZ800);
 
 int getSpeed() {
   float analogValue = analogRead(speedPin);
@@ -142,21 +146,23 @@ void setup() {
   Serial.println("");
   Serial.println("");
 
-  for (uint8_t t = 4; t > 0; t--) {
-    Serial.printf("[SETUP] BOOT WAIT %d...\n", t);
-    Serial.flush();
-    delay(1000);
+  WiFiMulti.addAP(ssid, password);
+
+  while (WiFiMulti.run() != WL_CONNECTED)
+  {
+    Serial.print(".");
+    delay(500);
   }
 
-  // Connect to Wi-Fi
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.println("Connecting to WiFi..");
-  }
-
-  // Log the ESP32 local IP Address
+  // Client address
+  Serial.print("WebSockets Client started @ IP address: ");
   Serial.println(WiFi.localIP());
+
+  // server address, port and URL
+  Serial.print("Connecting to WebSockets Server @ IP address: ");
+  Serial.print(socketIP);
+  Serial.print(", port: ");
+  Serial.println(socketPORT);
 
   // Set up pins
   pinMode(masterSliderPin, INPUT);
@@ -172,8 +178,10 @@ void setup() {
 
   rotaryALastState = digitalRead(rotaryPinA);
 
+  pixels.begin();
+
   // server address, port and URL
-  socketIO.begin("10.11.100.100", 8880, "/socket.io/?EIO=4");
+  socketIO.begin(socketIP, socketPORT, "/socket.io/?EIO=4");
 
   // event handler
   socketIO.onEvent(socketIOEvent);
@@ -182,6 +190,8 @@ void setup() {
 unsigned long messageTimestamp = 0;
 void loop() {
   socketIO.loop();
+
+  pixels.clear();
 
   uint64_t now = millis();
 
@@ -198,7 +208,7 @@ void loop() {
 
     // add payload (parameters) for the event
     JsonObject param1 = array.createNestedObject();
-    param1["masterVolume"] = analogRead(masterSliderPin);
+    param1["master"] = analogRead(masterSliderPin);
 
     JsonObject param2 = array.createNestedObject();
     param2["piano1"] = analogRead(piano1Pin);
@@ -224,5 +234,9 @@ void loop() {
 
     // Print JSON for debugging
     Serial.println(output);
+
+    // Set NeoPixel to rotart encoder position
+    pixels.setPixelColor(rotaryCounter % 12, pixels.Color(0, 150, 0));
+    pixels.show();
   }
 }
