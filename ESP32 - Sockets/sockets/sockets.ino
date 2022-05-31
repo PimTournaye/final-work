@@ -1,7 +1,8 @@
 #include <Arduino.h>
 
 #include <WiFi.h>
-#include <WiFiMulti.h>
+// #include <WiFiMulti.h>
+#include <WiFiMulti_Generic.h>
 
 #include <ArduinoJson.h>
 
@@ -10,32 +11,35 @@
 #include <WebSocketsClient_Generic.h>
 #include <SocketIOclient_Generic.h>
 
-WiFiMulti WiFiMulti;
+WiFiMulti_Generic WiFiMulti;
 SocketIOclient socketIO;
 
 // Network configuration
-const char *ssid = "REPLACE_WITH_YOUR_SSID";
-const char *password = "REPLACE_WITH_YOUR_PASSWORD";
-
+const char *ssid = "";
+const char *password = "";
 IPAddress socketIP(192, 168, 2, 232);
 int socketPORT = 8880;
 
-// Control panel pins
-int masterSliderPin = 26;  // A0
-int piano1Pin = 25;        // A1
-int piano2Pin = 34;        // A2
-int othersPin = 39;        // A3
-int speedPin = 36;         // A4
+// Control panel pins - Avoiding ADC2 pins since those are used for WiFi -- https://learn.adafruit.com/adafruit-huzzah32-esp32-feather/esp32-faq
+int masterSliderPin = 32;  // A7 or GPIO32
+int piano1Pin = 33;        // A9 or GPIO33
+int piano2Pin = 34;        // A2 or GPIO34
+int othersPin = 39;        // A3 or GPIO39
+int speedPin = 36;         // A4 or GPIO36
 int pixelRing = 15;        // D15
-int rotaryPinA = 32;       // D32
+int rotaryPinA = 12;       // D12
 int rotaryPinB = 14;       // D14
+int rotaryClick = 13;      // D13
 
+// Variables for the rotary encoder
 int rotaryCounter = 0;
 int rotaryAState;
 int rotaryALastState;
 
+// NeoPixel setup
 Adafruit_NeoPixel pixels(12, pixelRing, NEO_GRB + NEO_KHZ800);
 
+// map one potentiometer to a range of values
 int getSpeed() {
   float analogValue = analogRead(speedPin);
   return map(analogValue, 0, 1023, 0, 100);
@@ -54,23 +58,7 @@ void rotaryRead() {
   rotaryALastState = rotaryAState;
 }
 
-// String makeJson() {
-
-//   String output;
-
-//   doc["masterVolume"] = analogRead(masterSliderPin);
-//   doc["piano1"] = analogRead(piano1Pin);
-//   doc["piano2"] = analogRead(piano2Pin);
-//   doc["other"] = analogRead(othersPin);
-//   doc["speed"] = getSpeed();
-//   doc["circle"] = rotaryCounter % 12;
-
-//   serializeJson(doc, output);
-
-//   return output;
-// }
-
-
+// Copy pasted from WebSocket / Socket.io example, 
 void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length) {
 
   switch (type) {
