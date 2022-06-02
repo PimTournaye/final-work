@@ -3,6 +3,11 @@ import { sketch } from 'p5js-wrapper';
 import Keyboard from './Keyboard';
 import PongBall from './PongBall';
 
+import { io } from "https://cdn.socket.io/4.4.1/socket.io.esm.min.js";
+
+const socket = io();
+
+
 // Different MIDI devices, should probably get a list of devices and put them into a select menu
 let name1 = "Launchkey MK3 49 LKMK3 MIDI Out"
 let name2 = "Keystation 61 MK3"

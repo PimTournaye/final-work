@@ -7,9 +7,6 @@
 
 #include <Adafruit_NeoPixel.h>
 
-// #include <WebSocketsClient_Generic.h>
-// #include <SocketIOclient_Generic.h>
-
 #include <WebSocketsClient.h>
 #include <SocketIOclient.h>
 
@@ -17,8 +14,9 @@
 SocketIOclient socketIO;
 
 // Network configuration
-
-String socketIP = "192.168.178.22";
+const char *ssid = "Medialab";
+const char *password = "Ml@bAdmin!";
+String socketIP = "10.3.208.48";
 int socketPORT = 8080;
 
 // Control panel pins - Avoiding ADC2 pins since those are used for WiFi -- https://learn.adafruit.com/adafruit-huzzah32-esp32-feather/esp32-faq
@@ -127,9 +125,6 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length) 
   }
 }
 
-
-int led = LED_BUILTIN;
-
 ////////////////////
 // MAIN FUNCTIONS //
 ////////////////////
@@ -170,18 +165,19 @@ void setup() {
   pinMode(rotaryPinA, INPUT);
   pinMode(rotaryPinB, INPUT);
 
-  // for testing
-  pinMode(led, OUTPUT);
-
   rotaryALastState = digitalRead(rotaryPinA);
 
   pixels.begin();
 
   // server address, port and URL
+  //socketIO.begin(socketIP, socketPORT, "/socket.io/?EIO=4");
   socketIO.begin(socketIP, socketPORT, "/socket.io/?EIO=4");
 
   // event handler
   socketIO.onEvent(socketIOEvent);
+
+  socketIO.setReconnectInterval(5000);
+
 }
 
 unsigned long messageTimestamp = 0;
@@ -240,23 +236,7 @@ void loop() {
 
     // Print JSON for debugging
     Serial.println(output);
-
-
   }
-
-    Serial.println("master: ");
-    Serial.print(master);
-    Serial.println("piano1: ");
-    Serial.print(piano1);
-    Serial.println("piano2: ");
-    Serial.print(piano2);
-    Serial.println("other: ");
-    Serial.print(others);
-    Serial.println("speed: ");
-    Serial.print(speed);
-    Serial.println("circle: ");
-    Serial.print(rotary);
-
     // Set NeoPixel to rotart encoder position
     pixels.setPixelColor(rotaryCounter % 12, pixels.Color(0, 150, 0));
     pixels.show();

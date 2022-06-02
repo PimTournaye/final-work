@@ -1,14 +1,13 @@
-const express = require('express');
+import express from 'express';
 const app = express();
-const http = require('http');
-const server = http.createServer(app);
-const { Server } = require("socket.io");
+import { createServer } from 'http';
+const server = createServer(app);
+import { Server } from "socket.io";
 const io = new Server(server);
-var os = require('os');
+import { networkInterfaces as _networkInterfaces } from 'os';
 
-var networkInterfaces = os.networkInterfaces();
+var networkInterfaces = _networkInterfaces();
 
-console.log(networkInterfaces);
 
 io.on('connection', (socket) => {
 
@@ -18,11 +17,11 @@ io.on('connection', (socket) => {
 
   socket.on('arduino_event', (data) => {
 
-    console.log("Message from Client : ", data);
+    console.log("Message from Client: ", data);
 
-    socket.broadcast.emit("Send Message socket.broadcast.emit : ", data);
-    io.emit("Send Message io.emit Broadcasted : ", data);
-    socket.emit("Send Message : ", data);
+    // socket.broadcast.emit("Send Message socket.broadcast.emit : ", data);
+    // io.emit("Send Message io.emit Broadcasted : ", data);
+    // socket.emit("Send Message : ", data);
 
   })
   
@@ -33,6 +32,10 @@ io.on('connection', (socket) => {
   })
 
 })
+
+app.get('/', (req, res) => {
+  res.send('<h1>Hello world</h1>');
+});
 
 server.listen(8080, () => {
   console.log("Server launched on port 8080");
