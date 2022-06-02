@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "@tonaljs/tonal": "^4.6.5",
+    "express": "^4.18.1",
     "p5js-wrapper": "^1.2.3",
+    "socket.io": "^4.5.1",
     "webmidi": "^3.0.19"
   }
 }

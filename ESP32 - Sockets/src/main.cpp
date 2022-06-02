@@ -17,10 +17,9 @@
 SocketIOclient socketIO;
 
 // Network configuration
-const char *ssid = "Medialab";
-const char *password = "Ml@bAdmin!";
-String socketIP = "192.168.2.232";
-int socketPORT = 8880;
+
+String socketIP = "192.168.178.22";
+int socketPORT = 8080;
 
 // Control panel pins - Avoiding ADC2 pins since those are used for WiFi -- https://learn.adafruit.com/adafruit-huzzah32-esp32-feather/esp32-faq
 int masterSliderPin = 32;  // A7 or GPIO32
@@ -191,10 +190,19 @@ void loop() {
 
   pixels.clear();
 
-  uint64_t now = millis();
+  rotaryRead();
 
-  if (now - messageTimestamp > 1000) {
-    messageTimestamp = now;
+  int master = analogRead(masterSliderPin);
+  int speed = getSpeed();
+  int piano1 = analogRead(piano1Pin);
+  int piano2 = analogRead(piano2Pin);
+  int others = analogRead(othersPin);
+  int rotary = rotaryCounter % 12;
+
+   uint64_t now = millis();
+
+   if (now - messageTimestamp > 1000) {
+     messageTimestamp = now;
 
     // creat JSON message for Socket.IO (event)
     DynamicJsonDocument doc(1024);
@@ -206,22 +214,22 @@ void loop() {
 
     // add payload (parameters) for the event
     JsonObject param1 = array.createNestedObject();
-    param1["master"] = analogRead(masterSliderPin);
+    param1["master"] = master;
 
     JsonObject param2 = array.createNestedObject();
-    param2["piano1"] = analogRead(piano1Pin);
+    param2["piano1"] = piano1;
 
     JsonObject param3 = array.createNestedObject();
-    param3["piano2"] = analogRead(piano2Pin);
+    param3["piano2"] = piano2;
 
     JsonObject param4 = array.createNestedObject();
-    param4["other"] = analogRead(othersPin);
+    param4["other"] = others;
 
     JsonObject param5 = array.createNestedObject();
-    param5["speed"] = getSpeed();
+    param5["speed"] = speed;
 
     JsonObject param6 = array.createNestedObject();
-    param6["circle"] = rotaryCounter % 12;
+    param6["circle"] = rotary;
 
     // JSON to String (serializion)
     String output;
@@ -232,16 +240,24 @@ void loop() {
 
     // Print JSON for debugging
     Serial.println(output);
-    Serial.println(rotaryCounter);
+
+
+  }
+
+    Serial.println("master: ");
+    Serial.print(master);
+    Serial.println("piano1: ");
+    Serial.print(piano1);
+    Serial.println("piano2: ");
+    Serial.print(piano2);
+    Serial.println("other: ");
+    Serial.print(others);
+    Serial.println("speed: ");
+    Serial.print(speed);
+    Serial.println("circle: ");
+    Serial.print(rotary);
 
     // Set NeoPixel to rotart encoder position
     pixels.setPixelColor(rotaryCounter % 12, pixels.Color(0, 150, 0));
     pixels.show();
-
-  }
-  rotaryCounter++;
-  digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
-  delay(200);                // wait for a half second
-  digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
-  delay(200);  
 }

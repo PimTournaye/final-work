@@ -1,6 +1,14 @@
-const app = require('express');
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const express = require('express');
+const app = express();
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
+var os = require('os');
+
+var networkInterfaces = os.networkInterfaces();
+
+console.log(networkInterfaces);
 
 io.on('connection', (socket) => {
 
@@ -8,7 +16,7 @@ io.on('connection', (socket) => {
   console.log(socket.id);
   console.log("JWT token test: ", socket.handshake.headers)
 
-  socket.on('event_name', (data) => {
+  socket.on('arduino_event', (data) => {
 
     console.log("Message from Client : ", data);
 
@@ -26,6 +34,6 @@ io.on('connection', (socket) => {
 
 })
 
-http.listen(8080, () => {
+server.listen(8080, () => {
   console.log("Server launched on port 8080");
 })
