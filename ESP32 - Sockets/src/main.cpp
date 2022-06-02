@@ -197,7 +197,7 @@ void loop() {
 
    uint64_t now = millis();
 
-   if (now - messageTimestamp > 1000) {
+   if (now - messageTimestamp > 100) {
      messageTimestamp = now;
 
     // creat JSON message for Socket.IO (event)
@@ -209,23 +209,13 @@ void loop() {
     array.add("arduino_event");
 
     // add payload (parameters) for the event
-    JsonObject param1 = array.createNestedObject();
-    param1["master"] = master;
-
-    JsonObject param2 = array.createNestedObject();
-    param2["piano1"] = piano1;
-
-    JsonObject param3 = array.createNestedObject();
-    param3["piano2"] = piano2;
-
-    JsonObject param4 = array.createNestedObject();
-    param4["other"] = others;
-
-    JsonObject param5 = array.createNestedObject();
-    param5["speed"] = speed;
-
-    JsonObject param6 = array.createNestedObject();
-    param6["circle"] = rotary;
+    JsonObject params = array.createNestedObject();
+    params["master"] = master;
+    params["piano1"] = piano1;
+    params["piano2"] = piano2;
+    params["other"] = others;
+    params["speed"] = speed;
+    params["circle"] = rotary;
 
     // JSON to String (serializion)
     String output;
