@@ -1,6 +1,7 @@
-lockfileVersion: 5.3
+lockfileVersion: 5.4
 
 specifiers:
+  '@serialport/parser-readline': ^10.3.0
   serialport: ^10.4.0
   socket.io: ^4.1.2
   socket.io-client: ^4.5.1
@@ -8,6 +9,7 @@ specifiers:
   webmidi: ^3.0.20
 
 dependencies:
+  '@serialport/parser-readline': 10.3.0
   serialport: 10.4.0
   socket.io: 4.5.1
   socket.io-client: 4.5.1
@@ -744,7 +746,7 @@ packages:
       js2xmlparser: 4.0.2
       klaw: 4.0.1
       markdown-it: 12.3.2
-      markdown-it-anchor: 8.6.4_d643ca6eb40ae68ab966a77bead78073
+      markdown-it-anchor: 8.6.4_2zb4u3vubltivolgu556vv4aom
       marked: 4.0.16
       mkdirp: 1.0.4
       requizzle: 0.2.3
@@ -781,7 +783,7 @@ packages:
     resolution: {integrity: sha1-ih8HiW2CsQkmvTdEokIACfiJdKg=}
     dev: false
 
-  /markdown-it-anchor/8.6.4_d643ca6eb40ae68ab966a77bead78073:
+  /markdown-it-anchor/8.6.4_2zb4u3vubltivolgu556vv4aom:
     resolution: {integrity: sha512-Ul4YVYZNxMJYALpKtu+ZRdrryYt/GlQ5CK+4l1bp/gWXOG2QWElt6AqF3Mih/wfUKdZbNAZVXGR73/n6U/8img==}
     peerDependencies:
       '@types/markdown-it': '*'
