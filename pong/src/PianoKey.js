@@ -9,14 +9,20 @@ export default class PianoKey {
         this.y = y;
         this.height = height;
         this.width = width;
+        this.active = false;
     }
 
     /**
-     * This draws the key on the screen along with it's correct color
+     * This draws the key on the screen along with it's correct color. IF the key is active, it will be drawn as red
      * @returns {void} nothing
      */
     draw() {
+        // check if the key is active, if so, draw it as red
+        if (this.active) {
+            fill(255, 0, 0);
+        } else {
         fill(this.color);
+        }
         rect(this.x, this.y, this.width, this.height);
     }
 
@@ -30,13 +36,6 @@ export default class PianoKey {
         } else {
             return 255;
         }
-    }
-
-    /**
-     * Colors the color of the PianoKey object as red when it is active
-     */
-    isActive() {
-        this.color = 'red'
     }
 
     /**
