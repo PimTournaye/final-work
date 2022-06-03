@@ -16,16 +16,13 @@ export default class Keyboard {
     this.keyWidth = 60;
     // set a standard paddle width for drawing the paddle
     this.paddleWidth = 10;
-
     // Range of the keyboard
     this.range;
     // Set the highest and lowest notes for this keyboard
     this.highestNote = keys.length - 1;
     this.lowestNote = keys[0];
-
     // Active / played notes at this moment
     this.activeNotes = [];
-
     // Set the X coordinate for the paddle depending on which side of the screen the keyboard is on
     this.paddleX = () => {
       if (this.side == 'left') return 0 + this.keyWidth;
@@ -50,16 +47,21 @@ export default class Keyboard {
    * @returns {void} nothing
    */
   fillNotes() {
+    // Refresh the array to allow for octave keys and thus extra notes being added
     this.keys = [];
     try {
       let keyHeight = height / (this.highestNote - this.lowestNote + 1);
       let x;
       let y = 0;
+      // if the keyboard is on the left side of the screen, start the keys at the left side of the screen (coordinate 0), else mirror the keyboard
       if (this.side == 'left') {
         x = 0;
+      } else {
+        x = width - this.keyWidth;
         y = height;
-      } else x = width - this.keyWidth;
+      }
 
+      // Make new PianoKey object for each note in the range
       for (let i = this.lowestNote; i <= this.highestNote; i++) {
         let currentNote = i;
         let newKey = new PianoKey(currentNote, x, y, this.keyWidth, keyHeight)
@@ -70,15 +72,19 @@ export default class Keyboard {
         } else {
           this.keys.push(newKey);
         }
+        // Set the y coordinate for the next key, mirroring the keyboard if necessary
         if (this.side == 'left') {
           y =- keyHeight;
         } else {
           y += keyHeight;
         }
       }
-      
 
-      this.filledKeys = true;
+      if (this.keys.length > 2) {
+        // Variable that could be used to confirm the range of the keyboard, not in use at the moment
+        this.filledKeys = true;
+      }
+    
     } catch (error) {
       console.log(error)
     }
@@ -115,6 +121,7 @@ export default class Keyboard {
             key
           });
         }
+        // Listener for noteoff messages and removing notes from the activeNotes array
         this.MIDI_CHANNEL.addListener("noteoff", e => {
           let noteOff = e.note;
           //remove the PianoKey from the activeNotes array if it match the noteNumber of the PianoKey 
@@ -173,15 +180,15 @@ export default class Keyboard {
    * @returns {void} nothing
    */
   drawKeys() {
+    // if we don't have any keys
     if (!this.filledKeys) {
       return;
     } else if (this.keys.length <= 2) {
       return;
     }
-
+    // Draw all of the keys in this Keyboard object
     this.keys.forEach(key => {
       key.draw();
-      // if the key is active, draw it as red
     });
   }
 
@@ -200,14 +207,18 @@ export default class Keyboard {
     let lowestActiveNote = this.activeNotes.reduce((prev, curr) => prev.noteNumber < curr.noteNumber ? prev : curr);
     let highestActiveNote = this.activeNotes.reduce((prev, curr) => prev.noteNumber > curr.noteNumber ? prev : curr);
 
+    // Get coordinates for the paddle based on the lowest and highest notes in the activeNotes array
     let coords = {
       lowest: lowestActiveNote.y,
       highest: highestActiveNote.y + highestActiveNote.height, // add the height of the key to the y coordinate as to cover the last key
     }
     this.paddle.active = true;
+    // Update the position of the paddle
     this.paddle.updateRect(coords.lowest, coords.highest - coords.lowest);
+    // Draw the paddle
     this.paddle.draw()
   }
+
   // This is for debugging purposes
   displayActiveNotes() {
     fill(255, 0, 255);
@@ -218,6 +229,13 @@ export default class Keyboard {
       html += `${this.activeNotes[i].noteName}, `;
     }
     theDiv.innerHTML = html;
+  }
+
+  // MIDI check to avoid errors
+  checkMIDI(){
+    if (this.MIDI_CHANNEL == undefined) {
+      return;
+    }
   }
 
   /**
