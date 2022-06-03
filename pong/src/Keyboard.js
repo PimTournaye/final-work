@@ -57,6 +57,7 @@ export default class Keyboard {
       let y = 0;
       if (this.side == 'left') {
         x = 0;
+        y = height;
       } else x = width - this.keyWidth;
 
       for (let i = this.lowestNote; i <= this.highestNote; i++) {
@@ -69,8 +70,14 @@ export default class Keyboard {
         } else {
           this.keys.push(newKey);
         }
-        y += keyHeight;
+        if (this.side == 'left') {
+          y =- keyHeight;
+        } else {
+          y += keyHeight;
+        }
       }
+      
+
       this.filledKeys = true;
     } catch (error) {
       console.log(error)
@@ -104,11 +111,20 @@ export default class Keyboard {
         let k = this.keys.find(key => new String(key.noteName).valueOf() == new String(newNote.identifier).valueOf());
         if (k) {
           this.activeNotes.push(k);
+          this.activeNotes.forEach(key => {
+            key
+          });
         }
         this.MIDI_CHANNEL.addListener("noteoff", e => {
           let noteOff = e.note;
-          //remove the PianoKey from the activeNotes array if it match the noteNumber of the PianoKey
+          //remove the PianoKey from the activeNotes array if it match the noteNumber of the PianoKey 
           this.activeNotes = this.activeNotes.filter(note => note.noteName !== noteOff.identifier);
+          // set all the pianokeys not in the activeNotes array to inactive
+          this.keys.forEach(key => {
+            if (!this.activeNotes.includes(key)) {
+              key.active = false;
+            }
+          });
         });
       });
     } catch (error) {
