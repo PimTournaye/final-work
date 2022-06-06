@@ -58,11 +58,15 @@ export default class Keyboard {
         x = 0;
       } else {
         x = width - this.keyWidth;
-        y = height;
+        y = height - keyHeight;
+        console.log('first', y);
       }
 
       // Make new PianoKey object for each note in the range
       for (let i = this.lowestNote; i <= this.highestNote; i++) {
+        if (this.side == 'right') {
+          console.log(1, y);
+        }
         let currentNote = i;
         let newKey = new PianoKey(currentNote, x, y, this.keyWidth, keyHeight)
 
@@ -72,9 +76,12 @@ export default class Keyboard {
         } else {
           this.keys.push(newKey);
         }
+        if (this.side == 'right') {
+          console.log(2, y);
+        }
         // Set the y coordinate for the next key, mirroring the keyboard if necessary
-        if (this.side == 'left') {
-          y =- keyHeight;
+        if (this.side == 'right') {
+          y -= keyHeight;
         } else {
           y += keyHeight;
         }
@@ -84,6 +91,7 @@ export default class Keyboard {
         // Variable that could be used to confirm the range of the keyboard, not in use at the moment
         this.filledKeys = true;
       }
+
     
     } catch (error) {
       console.log(error)
