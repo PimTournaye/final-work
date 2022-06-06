@@ -34,8 +34,8 @@ WebMidi
       console.log(`${index}: ${device.name}`);
     });
     // doing some weird stuff to but it makes WebMidi work properly
-    let input1 = WebMidi.getInputByName(name1);
-    let input2 = WebMidi.getInputByName(name1);
+    let input1 = WebMidi.getInputByName(name2);
+    let input2 = WebMidi.getInputByName(name2);
     inputs.push(input1);
     inputs.push(input2);
 

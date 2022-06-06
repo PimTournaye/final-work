@@ -13,20 +13,30 @@ let showScoresTimemark;
 let maxTimer;
 
 // Socket stuff
-socket.on("connection", (data) => {
+socket.on("connection", () => {
   console.log("Connected to server");
+});
+
+socket.on("data", (data) => {
+  console.log(data);
   currectRound = data.round;
   roundToIntroduceGameOver = data.roundToIntroduceGameOver;
   showScoresTimemark = data.showScoresTimemark;
+  maxTimer = data.maxTimer;
+  globalTime = data.globalTime;
+  currentChoices = data.choices;
 });
 
 socket.on("update", (time) => {
   globalTime = time;
-});
-
-socket.on("refresh done", (choices) => {
-  console.log("refresh done", choices)
-
+  // replace the element with a new one
+  element.innerHTML = `<progress class="progress w-56" value="${timer}" max="${time}"></progress>`;
+  if (globalTime >= showScoresTimemark) {
+    showScores();
+  }
+  if (globalTime <= 0) {
+    document.querySelector("#scores").innerHTML = "<h1>Please wait...</h1>";
+  }
 });
 
 socket.on("new round", (choices) => {
@@ -35,17 +45,31 @@ socket.on("new round", (choices) => {
   hasVoted = false;
 });
 
+socket.on("game over", () => {
+  gameOver = true;
+  document.querySelector("#scores").innerHTML = "<h1>Game over!</h1>";
+  if (document.getElementById("progress")) {
+    document.getElementById("progress").remove();
+  }
+});
+
 // FUNCTIONS
 const generateHTML = (choices, index) => {
-  let html = `
+  if (choices.image === "Game Over") {
+    return gameOverButton;
+  } else {
+    let html = `
     <div class="scoreContainer" id="score-${index}"><figure>
             <img src="${choices.image}">
             <button class="btn btn-block btn-xs sm:btn-sm md:btn-md lg:btn-lg" onclick="vote(${index})"></button>
         </figure></div>`;
-  return html;
+    return html;
+  }
 }
-
-const gameOverButton = `<button class="btn btn-block btn-lg sm:btn-sm md:btn-md lg:btn-lg" onclick="vote(4)">Vote to end the piece?</button>`
+const gameOverButton = `
+<div class=ScoreContainer>
+<button class="btn btn-block btn-lg sm:btn-sm md:btn-md lg:btn-lg" onclick="vote(4)">Vote to end the piece?</button>
+</div>`;
 
 // Reveal the score options and allow voting
 function showScores(choices) {
@@ -72,32 +96,6 @@ function vote(index) {
     if (i !== index) {
       containers[i].style.opacity = 0.5;
     }
-  }
-}
-
-function startTimer() {
-  if (gameOver) {
-    // if the progress element is still present, remove it
-    if (document.getElementById("progress")) {
-      document.getElementById("progress").remove();
-    }
-    document.querySelector("#scores").innerHTML = "<h1>Game Over</h1>";
-    return;
-  } else {
-    let element = document.getElementById("timer");
-    let timer = setInterval(() => {
-      time--;
-      // replace the element with a new one
-      element.innerHTML = `<progress class="progress w-56" value="${timer}" max="${time}"></progress>`;
-      if (time === showScoresTimemark) {
-        showScores();
-      }
-      if (time <= 0) {
-        clearInterval(timer);
-        socket.emit("refresh");
-        document.querySelector("#scores").innerHTML = "<h1>Please wait...</h1>";
-      }
-    }, 1000);
   }
 }
 

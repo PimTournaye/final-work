@@ -18,6 +18,10 @@ let choices = makeNewChoices();
 let images = [];
 let usedImages = [];
 
+let currectRound = 0;
+let roundsToIntroduceGameOver = _.random(15, 24);;
+let time;
+
 /**
  * @route GET /
  * @desc Loads the index.html file
@@ -48,14 +52,19 @@ io.on("connection", (socket) => {
   console.log("a user connected");
 
   // send the client the following data: current choices, current timer, current round, show score choice time mark, max timer
+  socket.emit("data", {
+    choices: choices,
+    timer: config.MAX_TIMER,
+    showScoreChoiceTime: config.SHOW_SCORE_CHOICE_TIME,
+    maxTimer: config.MAX_TIMER,
+    round: 0,
+    roundsToIntroduceGameOver: roundsToIntroduceGameOver,
+  });
 
 
   socket.on("vote", (index) => {
     io.emit("vote", index);
-
-    if (choices[index]) {
-      choices[index].votes++;
-    }
+    if (choices[index]) choices[index].votes++;
   });
 
   socket.on('start', () => {
@@ -125,19 +134,51 @@ function updateChoices() {
     2: { image: newChoices[2], votes: 0 },
     3: { image: newChoices[3], votes: 0 },
   }
+  // if the current round is greater than the number of rounds to introduce the game over, then add the game over image to the choices
+  if (currectRound >= roundsToIntroduceGameOver) {
+    let gameOverImage = {
+      image: "Game Over",
+      votes: 0
+    }
+    Object.assign(choices, { 4: gameOverImage });
+  }
 }
 
 // make a timer that counts down from 60 seconds, when it hits 0, it will emit a new round event to the client
 function makeTimer() {
-  let timer = config.MAX_TIMER;
+  time = config.MAX_TIMER;
   let interval = setInterval(() => {
-    timer--;
-    if (timer <= 0) {
+    time--;
+    socket.emit("update", getData());
+    if (time <= 0) {
       clearInterval(interval);
       updateChoices();
       io.emit("new round");
+      currectRound++;
     }
   }, 1000);
+}
+
+function getData() {
+  let data = {
+    choices: choices,
+    timer: config.MAX_TIMER - time,
+    round: currectRound,
+    showScoreChoiceTime: config.SHOW_SCORE_CHOICE_TIME,
+    maxTimer: config.MAX_TIMER,
+  };
+
+  return data;
+}
+
+function checkWinningVote() {
+  let winner = _.maxBy(choices, "votes");
+  let image = winner.image;
+  if (image === "Game Over") {
+    io.emit("game over");
+    return;
+  }
+  return image;
 }
 
 

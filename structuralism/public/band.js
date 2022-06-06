@@ -6,6 +6,16 @@ socket.on("connection", (data) => {
 });
 
 socket.on("initial score", (score) => {
-    // fill the score dom element with the initial score
-    document.querySelector("#score").innerHTML = score;
+    // fill the img dom element with the initial score
+    document.querySelector("#score").innerHTML = `<img src="${score}">`;
 });
+
+socket.on("new round"), (score) => {
+    // update the score dom element with the new score
+    document.querySelector("#score").innerHTML = `<img src="${score}">`;
+};
+
+socket.on("game over"), () => {
+    // show the game over screen
+    document.querySelector("#score").innerHTML = `<h1>Game over!</h1>`;
+}
