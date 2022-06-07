@@ -16,7 +16,7 @@ bool debug = false;
 
 void setup()
 {
-  pinMode(hiHatPin, INPUT);
+  pinMode(hiHatPin, INPUT_PULLUP);
   pinMode(crashPiezoPin, INPUT);
   pinMode(kickPiezoPin, INPUT);
 
@@ -49,7 +49,7 @@ void loop()
 
   Serial.println(buttonReading);
 
-  if (buttonReading == HIGH) {
+  if (buttonReading == LOW) {
     Serial.println("HiHat!");
   }
   if (debug)
