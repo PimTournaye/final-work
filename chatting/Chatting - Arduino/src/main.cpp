@@ -4,7 +4,8 @@ int hiHatPin = 9;
 int crashPiezoPin = A0;
 int kickPiezoPin = A1;
 
-const int threshold = 900;
+const int kickThreshold = 750;
+const int crashThreshold = 800;
 
 int crashReading = 0;
 int kickReading = 0;
@@ -37,17 +38,15 @@ void loop()
   kickReading = analogRead(kickPiezoPin);
   buttonReading = digitalRead(hiHatPin);
 
-  if (crashReading >= threshold)
+  if (crashReading >= crashThreshold)
   {
     Serial.println("Crash!");
   }
 
-  if (kickReading >= threshold)
+  if (kickReading >= kickThreshold)
   {
     Serial.println("Kick!");
   }
-
-  Serial.println(buttonReading);
 
   if (buttonReading == LOW) {
     Serial.println("HiHat!");
