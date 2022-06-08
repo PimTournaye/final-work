@@ -4,18 +4,18 @@ import { keysValues, numberValues } from './keys.js';
 
 // Serialport initialization for Arduino
 import { SerialPort } from 'serialport'
-import  { ReadlineParser } from '@serialport/parser-readline'
-const port = new SerialPort({ path: config.SERIAL_PORT_PATH, baudRate: config.BAUD_RATE }, function (err) {
-  if (err) {
-    return console.log('Serialport error: ', err.message)
-  } else console.log('Serialport connected');
-})
+import { ReadlineParser } from '@serialport/parser-readline'
+
+// Socket.io for communication and network
+import { Server } from "socket.io";
+
+// Web MIDI API for Node.js
+import { WebMidi } from 'webmidi'
+
 
 // Socket.io initialization
-import { Server } from "socket.io";
 const SOCKET_PORT = 3000;
 let io = new Server(SOCKET_PORT);
-
 io.on('connection', (socket) => {
   console.log('a user connected');
   socket.on('chat message', (msg) => {
@@ -23,170 +23,178 @@ io.on('connection', (socket) => {
   });
 });
 
-// MIDI initialization
-import { WebMidi } from 'webmidi'
-let MIDI;
-WebMidi.enable()
-  .then(() => {
-    console.log('WebMidi enabled!');
-    const INPUT = WebMidi.getInputByName(config.MIDI_INSTRUMENT_NAME);
-    MIDI = INPUT.channels[1];
-  })
-  .catch(err => console.log(err));
+// Automatically grab the correct serialport from available devices
+// Borrowed and then tweaked from https://dev.to/azzamjiul/how-to-connect-to-arduino-automatically-using-serial-port-in-nodejs-plh
+let serialPath = ''
+let port;
 
-/**
- * Sends a message to the chat room through the socket.io server.
- * @param {*} event 
- */
-let sendMessage = () => {
-  if (message.length != 0) {
-    socket.emit('chat message', message);
-    message = '';
-  } else console.log('No message to send');
-}
-
-
-///////////////
-// Main Loop //
-///////////////
-function MIDIKeyPad() {
-  // One big object with all the keys of the keypad 
-  const padValues = [...keysValues, ...numberValues];
-
-  // Timer variables
-  let time = { start: 0, end: 0 };
-  let timerOver = false;
-
-  // Variables to make a message with
-  let message = '';
-  let characters;
-
-  // Note variables
-  let note = {
-    previous: '',
-    current: '',
-  }
-  // Counter for keeping track of represses of a key
-  let counter = 0;
-
-  // MIDI event listeners
-  MIDI.addListener('noteon', (e) => {
-    time.start = Date.now();
-  });
-  
-  MIDI.addListener('noteoff', (e) => {
-    // Timer for keypad
-    time.end = Date.now();
-    // Get the note as a string, eg. 'C3'
-    note.current = e.note.identifier;
-    console.log(time, 'difference', time.end - time.start);
-
-    // If the difference between the start and end time is greater than the timer delay or if the note is diffferent from the previous note, set the timerOver to true and reset the counter
-    if (time.end - time.start > config.KEYPAD_TIMER_DELAY || note.current != note.previous) {
-      timerOver = true;
-      counter = 0;
-    } else timerOver = false;
-
-    // If the timer is over, proceed as normal
-    if (timerOver) {
-      // Match note with a padValues.MIDI key in the padValues object to get that key's characters
-      characters = padValues.find(padValue => padValue.MIDI === note);
-      // If the padValue is found, add the character to the message string
-      if (typeof characters != 'undefined' || characters != null) {
-        // Add the needed character padValue to the message string
-        let character = characters.charAt(counter);
-        message += character;
-      } else console.log('There was an error with the noteoff event', e.note);
-    // If the note is the same as the previous note, it's a repress, which increments the counter
-    } else if (note.current === note.previous && timerOver == false) {
-      counter++;
-      // If the counter is greater than the length of the character, reset the counter
-      if (counter > characters.length) counter = 0;
-      // Remove the last character from the message string and replace it with charAt(counter)
-      message = message.slice(0, -1)
-      let newCharacter = characters.find(padValue => padValue.MIDI === note).charAt(counter);
-      message += newCharacter;
+SerialPort.list().then(ports => {
+  let done = false;
+  let count = 0;
+  let allports = ports.length;
+  ports.forEach((port) => {
+    count++
+    let pm = port.manufacturer;
+    console.log(port);
+    if (typeof pm !== 'undefined' && pm.includes('arduino')) {
+      serialPath = port.path;
+      done = true;
     }
-    // Set the previous note to the current note
-    note.previous = note.current
-  });
-
-  port.list().then (
-    ports => ports.forEach(port =>console.log(port.path)),
-    err => console.log(err)
-  )
-
-  const parser = new ReadlineParser()
+    if (count === allports && done === false) {
+      console.log(`Can't find Arduino`);
+    }
+  })
+  port = new SerialPort({ path: serialPath, baudRate: config.BAUD_RATE }, (err) => {
+    if (err) {
+      return console.log('Serialport error: ', err.message)
+    }
+  })
+  const parser = new ReadlineParser();
   port.pipe(parser); // pipe the serial stream to the parser
 
-  function showPortOpen() {
-    console.log('port open. Data rate: ' + port.baudRate);
-  }
-   
-  function readSerialData(data) {
-    console.log(data);
-  }
-   
-  function showPortClose() {
-    console.log('port closed.');
-  }
-   
-  function showError(error) {
-    console.log('Serial port error: ' + error);
-  }
-
   port.on('open', showPortOpen);
-parser.on('data', readSerialData);
+  parser.on('data', readSerialData);
   port.on('close', showPortClose);
-port.on('error', showError);
+  port.on('error', showError);
 
-  // Reading from the Arduino
-  port.on('data', (data) => {
+
+  function showPortOpen() {
+    console.log('Serialport open. Data rate: ' + port.baudRate);
+  }
+
+  function readSerialData(data) {
     console.log('Data: ', data);
     switch (data) {
       // Send the message on crash cymbal hit
       case config.CRASH_MESSAGE:
         sendMessage();
         counter = 0;
+        console.log(data);
         break;
       // Remove the last character from the input on hihats cymbals closing
       case config.HIHAT_MESSAGE:
         message = message.slice(0, -1);
+        console.log(data);
+        break;
       // Insert a space into the message / input box when playing the kick drum
       case config.KICK_MESSAGE:
         message += ' ';
+        console.log(data);
+        break;
       default:
         console.log('No match');
         break;
     }
+  }
+
+  function showPortClose() {
+    console.log('port closed.');
+  }
+
+  function showError(error) {
+    console.log('Serial port error: ' + error);
+  }
+});
+
+// MIDI initialization
+let MIDI;
+WebMidi.enable()
+  .then(() => {
+    console.log('WebMidi enabled!');
+    const INPUT = WebMidi.getInputByName(config.MIDI_INSTRUMENT_NAME);
+    MIDI = INPUT.channels[1];
+
+    MIDIKeyPad();
+  })
+  .catch(err => console.log(err));
+
+
+/**
+ * Sends a message to the chat room through the socket.io server.
+ * @param {*} event 
+ */
+let sendMessage = () => {
+  if (message.length !== 0) {
+    console.log('Sending message: ', message);
+    socket.emit('chat message', message);
+    message = '';
+  } else console.log('No message to send');
+}
+
+///////////////
+// Main Loop //
+///////////////
+
+// Init empty string for building messages
+let message = ''
+// Counter for keeping track of represses of a key
+let counter = 0;
+
+function MIDIKeyPad() {
+  // One big object with all the keys of the keypad 
+  const padValues = [...keysValues, ...numberValues];
+
+  // Variables to make a message with
+  let characters;
+
+  // Note variables for tracking
+  let note = {
+    previous: '',
+    current: '',
+  }
+  // Timestamps and counter for key presses
+  let tracker = {
+    time: null,
+    counter: null
+  }
+
+  // MIDI event listeners
+  MIDI.addListener('noteoff', (e) => {
+    // Maybe do something here, probably not necessary
+  });
+
+
+  MIDI.addListener('noteon', (e) => {
+    // Get the note as a string, eg. 'C3'
+    note.current = e.note.identifier;
+    // If the note is different from the previous note, reset the counter
+    if (note.current !== note.previous) {
+      // Reset the counter since there is a different 'key' being used
+      tracker.counter = 0;
+      // Restart the timer to track it
+      tracker.time = Date.now();
+    }
+    if (note.current === note.previous) {
+      const timecheck = Date.now();
+      // if the difference between the current time and the previous time is less than the delay, increment the counter
+      if (timecheck - tracker.time < config.KEYPAD_TIMER_DELAY) {
+        // Increment the counter
+        tracker.counter++;
+        // Reset our timer
+        tracker.time = Date.now();
+        // Remove the last character from the our message so we can replace it later
+        message = message.slice(0, -1)
+      } else {
+        // Reset the counter to start anew
+        tracker.counter = 0;
+        // Reset our timer
+        tracker.time = Date.now();
+      }
+    }
+      // Match note with a padValues.MIDI key in the padValues object to get that key's characters
+      characters = padValues.find(padValue => padValue.MIDI == note.current);
+      console.log(characters);
+      // If the padValue is found, add the character to the message string
+      if (typeof characters != 'undefined' || characters != null) {
+        // Add the needed character padValue to the message string
+        let character = characters.value.charAt(tracker.counter);
+        console.log(character);
+        message += character;
+      } else console.log("Note not recognized or mapped", note.current);
+
+      // Set the previous note to the current note
+      note.previous = note.current
+      console.log('Message: ', message);
+      console.log("Counter:", counter);
   });
 }
-
-// port.list().then(
-//   ports => ports.forEach(port =>console.log(port.path)),
-//   err => console.log(err)
-// )
-
-const parser = new ReadlineParser()
-port.pipe(parser)
-
-function showPortOpen() {
-  console.log('port open. Data rate: ' + port.baudRate);
-}
- 
-function readSerialData(data) {
-  console.log(data);
-}
- 
-function showPortClose() {
-  console.log('port closed.');
-}
- 
-function showError(error) {
-  console.log('Serial port error: ' + error);
-}
-
-port.on('open', showPortOpen);
-parser.on('data', readSerialData);
-port.on('close', showPortClose);
-port.on('error', showError);
