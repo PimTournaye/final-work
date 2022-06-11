@@ -1,5 +1,5 @@
 import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
-const socket = io();
+const socket = io("http://localhost:2000");
 
 let globalTime, maxTimer;
 
@@ -12,7 +12,9 @@ async function start() {
     // remove the start button
     document.querySelector("#btn").remove();
 }
-document.querySelector("#btn").addEventListener("click", start);
+document.querySelector("#btn").addEventListener("click", () => {
+    start();
+});
 
 window.onload = async () => {
     let initial = await fetch("http://localhost:2000/initial");
@@ -26,6 +28,7 @@ socket.on("connection", (data) => {
 });
 
 socket.on("update", (data) => {
+    console.log("update received");
     maxTimer = data.maxTimer;
     globalTime = data.timer;
 
@@ -37,13 +40,14 @@ socket.on("update", (data) => {
 });
 
 
-socket.on("new-round-band"), (score) => {
+socket.on("new-round-band", (score) => {
     console.log('Got new round');
     // update the score dom element with the new score
     document.querySelector("#score").innerHTML = `<img src="${score}" class="md:container md:mx-auto">`;
-};
+});
 
 socket.on("game-over"), () => {
+    console.log("Game over");
     // show the game over screen
     document.querySelector("#score").innerHTML = `<h1 class="md:container md:mx-auto">Game over!</h1>`;
 }
