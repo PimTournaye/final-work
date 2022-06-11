@@ -1,5 +1,4 @@
 import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
-//const socket = io("https://localhost:2000");
 const socket = io();
 
 let gameOver = false;
@@ -10,7 +9,7 @@ let currectRound;
 
 let globalTime;
 let roundToIntroduceGameOver;
-let showScoresTimemark;
+let showScoreChoiceTime;
 let maxTimer;
 
 // Socket stuff
@@ -19,32 +18,35 @@ socket.on("connect", () => {
 });
 
 socket.on("update", (data) => {
-  console.log(data);
-  currectRound = data.round;
-  roundToIntroduceGameOver = data.roundToIntroduceGameOver;
-  showScoresTimemark = data.showScoresTimemark;
-  maxTimer = data.maxTimer;
-  globalTime = data.globalTime;
-  currentChoices = data.choices;
-});
+  console.log('got update data');
 
-socket.on("tick", (data) => {
-  globalTime = data.time;
+  currentChoices = data.choices;
+  globalTime = data.timer;
+  currectRound = data.round;
+  showScoreChoiceTime = data.showScoreChoiceTime;
+  roundToIntroduceGameOver = data.roundToIntroduceGameOver;
+  maxTimer = data.maxTimer;
+
   // replace the element with a new one
-  let element = document.querySelector("#timer").innerHTML;
-  element = `<progress class="progress w-56" value="${time}" max="${maxTimer}"></progress>`;
-  if (globalTime >= showScoresTimemark) {
-    showScores();
+  let element = document.querySelector("#timer").value;
+  element = globalTime;
+
+  // if we have met showScoreChoiceTime, show the scores
+  if (globalTime == showScoreChoiceTime) {
+    showScores(currentChoices);
   }
   if (globalTime <= 0) {
     document.querySelector("#scores").innerHTML = "<h1>Please wait...</h1>";
   }
 });
 
-socket.on("new round", (choices) => {
+socket.on("new-round-public", (choices) => {
   console.log("new round", choices)
   currentChoices = choices
   hasVoted = false;
+
+  // clear the scores div
+  document.querySelector("#scores").innerHTML = "";
 });
 
 socket.on("game over", () => {
@@ -75,9 +77,12 @@ const gameOverButton = `
 
 // Reveal the score options and allow voting
 function showScores(choices) {
-  let element = document.querySelector("#scores").innerHTML = "";
+  // clear the scores div
+  document.querySelector("#scores").innerHTML = "";
+  // generate html for the scores and append it to the scores div 
   for (let i = 0; i < choices.length; i++) {
-    element += generateHTML(choices[i], i);
+    let html = generateHTML(choices[i], i);
+    document.querySelector("#scores").innerHTML += html;
   }
   // if we have met roundToIntroduceGameOver, add in the game over button
   if (currectRound >= roundToIntroduceGameOver) {

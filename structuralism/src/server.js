@@ -6,19 +6,15 @@ import _ from "lodash";
 import { config } from "./config.js";
 
 import { readdirSync } from "fs";
-
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-
 const app = express();
+app.use(express.static(path.join(__dirname, "../public")));
 const httpServer = createServer(app);
 const io = new Server(httpServer);
-
-app.use(express.static(path.join(__dirname, "../public")));
 
 let choices = [];
 let images = [];
@@ -26,7 +22,7 @@ let usedImages = [];
 
 let currectRound = 0;
 let roundsToIntroduceGameOver = _.random(15, 24);;
-let time;
+let time = config.MAX_TIMER;
 
 let started = false;
 
@@ -58,21 +54,31 @@ app.post("/start", (req, res) => {
   console.log("Started the timer");
   if (!started) {
     started = true;
+    io.emit("start");
   } else res.send("Game is already started");
 });
 
 app.get("/initial", (req, res) => {
-  res.json({image: initial}).status(200);
+  res.json({ image: initial }).status(200);
 });
 
 io.on("connection", (socket) => {
   console.log("a user connected - ", socket.id);
 
-  socket.emit("update", getData());
+  io.emit("update", getData());
 
 
-  // make a timer that counts down from 60 seconds, when it hits 0, it will emit a new round event to the client
-  if (started) {
+  socket.on('start', () => {
+
+    // start the round
+    socket.broadcast.emit("new-round-public", () => {
+
+      console.log("new round emitted");
+      getData(time);
+
+    });
+
+    // make a timer that counts down from 60 seconds, when it hits 0, it will emit a new round event to the client
     time = config.MAX_TIMER;
     let interval = setInterval(() => {
       console.log('timer ticked');
@@ -84,18 +90,25 @@ io.on("connection", (socket) => {
         currectRound++;
         // Get new round ready
         updateChoices();
+        // Check the votes
+        //let image = checkWinningVote();
+        // Emit image to band client
+        //socket.broadcast.emit("new-round-band", image);
+  
         // Emit new round
-        io.emit("new round", getData());
-        // Reset the timer
-        time = config.MAX_TIMER;
-
+        socket.broadcast.emit("new-round-public", getData(time));
+  
         console.log('new round started');
       }
-      socket.emit("update", getData());
+      if (started) {
+        // restart the timer
+      }
+      socket.broadcast.emit("update", getData());
     }, 1000);
-  }
+  });
 
   socket.on("vote", (index) => {
+    console.log("vote received - option " + index);
     io.emit("vote", index);
     if (choices[index]) choices[index].votes++;
   });
@@ -144,14 +157,12 @@ async function makeNewChoices() {
       image: image,
       votes: 0
     }
+    // add the new image to the used images array so it won't get used again later
     usedImages.push(image);
   }
-  //choices.push(...pages);
-
   // keep track of which images have already been used
   usedImages.push(...pages);
 
-  console.log(choices);
   return choices;
 }
 
@@ -179,15 +190,15 @@ function getData() {
     timer: config.MAX_TIMER - time,
     round: currectRound,
     showScoreChoiceTime: config.SHOW_SCORE_CHOICE_TIMEMARK,
+    roundsToIntroduceGameOver: roundsToIntroduceGameOver,
     maxTimer: config.MAX_TIMER,
   };
-
   return data;
 }
 
 function checkWinningVote() {
-  let winner = _.maxBy(choices, "votes");
-  let image = winner.image;
+  const winner = _.maxBy(choices, "votes");
+  const image = winner.image;
   if (image === "Game Over") {
     io.emit("game over");
     started = false;
@@ -195,8 +206,6 @@ function checkWinningVote() {
   }
   return image;
 }
-
-
 
 httpServer.listen(config.PORT, async () => {
   console.log(`listening on port ${config.PORT}`);
