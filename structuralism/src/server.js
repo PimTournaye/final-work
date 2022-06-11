@@ -91,7 +91,7 @@ io.on("connection", (socket) => {
         // Check the votes
         let image = checkWinningVote();
         // Emit image to band client
-        socket.broadcast.emit("new-round-band", image);
+        io.emit("new-round-band", image);
 
         // Emit new round
         socket.broadcast.emit("new-round-public");
@@ -102,7 +102,7 @@ io.on("connection", (socket) => {
       if (!started) {
         clearInterval(interval);  // stop the timer
       }
-      socket.broadcast.emit("update", getData());
+      io.emit("update", getData());
     }, 1000);
   });
 
