@@ -1,5 +1,5 @@
 import express from "express";
-import { createServer, get } from "http";
+import { createServer } from "http";
 import { Server } from "socket.io";
 import _ from "lodash";
 
@@ -7,14 +7,20 @@ import { config } from "./config.js";
 
 import { readdirSync } from "fs";
 
+import { fileURLToPath } from 'url';
+import path, { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "../public")));
 
-let choices = makeNewChoices();
-
+let choices = [];
 let images = [];
 let usedImages = [];
 
@@ -22,12 +28,16 @@ let currectRound = 0;
 let roundsToIntroduceGameOver = _.random(15, 24);;
 let time;
 
+let started = false;
+
+let initial;
+
 /**
  * @route GET /
  * @desc Loads the index.html file
  */
 app.get("/", (req, res) => {
-  res.sendFile("../public/index.html");
+  res.sendFile("index.html", { root: path.join(__dirname, "../public") });
 });
 
 /**
@@ -35,52 +45,69 @@ app.get("/", (req, res) => {
  * @desc Loads the page for the band
  */
 app.get("/band", (req, res) => {
-  res.sendFile(__dirname + "/band.html");
+  console.log('sending band page');
+  res.sendFile("band.html", { root: path.join(__dirname, "../public") });
 });
 
 /**
- * @route GET /start
+ * @route POST /start
  * @desc Starts the game
  */
-app.get("/start", (req, res) => {
-
-  io.emit("start");
+app.post("/start", (req, res) => {
   res.send("Started the timer");
+  console.log("Started the timer");
+  if (!started) {
+    started = true;
+  } else res.send("Game is already started");
+});
+
+app.get("/initial", (req, res) => {
+  res.json({image: initial}).status(200);
 });
 
 io.on("connection", (socket) => {
-  console.log("a user connected");
+  console.log("a user connected - ", socket.id);
 
-  // send the client the following data: current choices, current timer, current round, show score choice time mark, max timer
-  socket.emit("data", {
-    choices: choices,
-    timer: config.MAX_TIMER,
-    showScoreChoiceTime: config.SHOW_SCORE_CHOICE_TIME,
-    maxTimer: config.MAX_TIMER,
-    round: 0,
-    roundsToIntroduceGameOver: roundsToIntroduceGameOver,
-  });
+  socket.emit("update", getData());
 
+
+  // make a timer that counts down from 60 seconds, when it hits 0, it will emit a new round event to the client
+  if (started) {
+    time = config.MAX_TIMER;
+    let interval = setInterval(() => {
+      console.log('timer ticked');
+      time--;
+      if (time <= 0) {
+        // stop the interval
+        clearInterval(interval);
+        // Increment round number
+        currectRound++;
+        // Get new round ready
+        updateChoices();
+        // Emit new round
+        io.emit("new round", getData());
+        // Reset the timer
+        time = config.MAX_TIMER;
+
+        console.log('new round started');
+      }
+      socket.emit("update", getData());
+    }, 1000);
+  }
 
   socket.on("vote", (index) => {
     io.emit("vote", index);
     if (choices[index]) choices[index].votes++;
   });
-
-  socket.on('start', () => {
-    // Start the global timer
-    makeTimer();
-  });
 });
 
 // get all the images from the public folder and put them in an array, then shuffle the array
-function getImages() {
-  images = readdirSync("../public/img/Treatise");
+async function getImages() {
+  let loadImages = readdirSync("../public/img/Treatise");
   // add all the images to the array
-  images = images.map((image) => {
-    return `/images/Treatise/${image}`;
+  images = loadImages.map((image) => {
+    return `./img/Treatise/${image}`;
   });
-  console.log(images);
   // shuffle the array
   images = _.shuffle(images);
 }
@@ -119,14 +146,16 @@ async function makeNewChoices() {
     }
     usedImages.push(image);
   }
-  choices.push(...pages);
+  //choices.push(...pages);
 
   // keep track of which images have already been used
   usedImages.push(...pages);
+
+  console.log(choices);
   return choices;
 }
 
-function updateChoices() {
+async function updateChoices() {
   let newChoices = await makeNewChoices();
   choices = {
     0: { image: newChoices[0], votes: 0 },
@@ -144,27 +173,12 @@ function updateChoices() {
   }
 }
 
-// make a timer that counts down from 60 seconds, when it hits 0, it will emit a new round event to the client
-function makeTimer() {
-  time = config.MAX_TIMER;
-  let interval = setInterval(() => {
-    time--;
-    socket.emit("update", getData());
-    if (time <= 0) {
-      clearInterval(interval);
-      updateChoices();
-      io.emit("new round");
-      currectRound++;
-    }
-  }, 1000);
-}
-
 function getData() {
   let data = {
     choices: choices,
     timer: config.MAX_TIMER - time,
     round: currectRound,
-    showScoreChoiceTime: config.SHOW_SCORE_CHOICE_TIME,
+    showScoreChoiceTime: config.SHOW_SCORE_CHOICE_TIMEMARK,
     maxTimer: config.MAX_TIMER,
   };
 
@@ -176,6 +190,7 @@ function checkWinningVote() {
   let image = winner.image;
   if (image === "Game Over") {
     io.emit("game over");
+    started = false;
     return;
   }
   return image;
@@ -183,9 +198,10 @@ function checkWinningVote() {
 
 
 
-httpServer.listen(config.PORT, () => {
+httpServer.listen(config.PORT, async () => {
   console.log(`listening on port ${config.PORT}`);
   // populate the images array
-  getImages();
-  io.emit('initial score', getInitialScore());
+  await getImages();
+  choices = await makeNewChoices();
+  initial = getInitialScore();
 });

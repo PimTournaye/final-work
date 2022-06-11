@@ -1,5 +1,6 @@
 import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
-const socket = io("https://localhost:2000");
+//const socket = io("https://localhost:2000");
+const socket = io();
 
 let gameOver = false;
 let hasVoted = false;
@@ -13,11 +14,11 @@ let showScoresTimemark;
 let maxTimer;
 
 // Socket stuff
-socket.on("connection", () => {
+socket.on("connect", () => {
   console.log("Connected to server");
 });
 
-socket.on("data", (data) => {
+socket.on("update", (data) => {
   console.log(data);
   currectRound = data.round;
   roundToIntroduceGameOver = data.roundToIntroduceGameOver;
@@ -27,10 +28,11 @@ socket.on("data", (data) => {
   currentChoices = data.choices;
 });
 
-socket.on("update", (time) => {
-  globalTime = time;
+socket.on("tick", (data) => {
+  globalTime = data.time;
   // replace the element with a new one
-  element.innerHTML = `<progress class="progress w-56" value="${timer}" max="${time}"></progress>`;
+  let element = document.querySelector("#timer").innerHTML;
+  element = `<progress class="progress w-56" value="${time}" max="${maxTimer}"></progress>`;
   if (globalTime >= showScoresTimemark) {
     showScores();
   }

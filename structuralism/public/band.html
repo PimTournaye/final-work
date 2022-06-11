@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Band page</title>
-    <script src="band.js"></script>
+    <script src="./js/band.js" type="module"></script>
     <link
       href="https://cdn.jsdelivr.net/npm/daisyui@2.15.2/dist/full.css"
       rel="stylesheet"
@@ -14,8 +14,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body>
+    <div id="container">
+      <progress class="progress w-56" value="30" max="60"></progress>
+    <button class="btn btn-wide" id="btn" >START</button>
     <div id="score">
       <img src="">
     </div>
+  </div>
   </body>
 </html>
