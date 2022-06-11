@@ -1,6 +1,8 @@
 import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
 const socket = io();
 
+let globalTime, maxTimer;
+
 async function start() {
     let url = "http://localhost:2000/start";
     socket.emit("start");
@@ -23,19 +25,27 @@ socket.on("connection", (data) => {
     console.log("Connected to server");
 });
 
-socket.on("data", (data) => {
-    console.log(data)
+socket.on("update", (data) => {
+    maxTimer = data.maxTimer;
+    globalTime = data.timer;
+
+    // Replace the progress element values with given data
+    let progress = document.querySelector("#timer");
+    progress.max = maxTimer;
+    // Displaying counting up insread of down to go along with the score
+    progress.value = maxTimer - globalTime;
 });
 
 
-socket.on("new round"), (score) => {
+socket.on("new-round-band"), (score) => {
+    console.log('Got new round');
     // update the score dom element with the new score
-    document.querySelector("#score").innerHTML = `<img src="${score}">`;
+    document.querySelector("#score").innerHTML = `<img src="${score}" class="md:container md:mx-auto">`;
 };
 
-socket.on("game over"), () => {
+socket.on("game-over"), () => {
     // show the game over screen
-    document.querySelector("#score").innerHTML = `<h1>Game over!</h1>`;
+    document.querySelector("#score").innerHTML = `<h1 class="md:container md:mx-auto">Game over!</h1>`;
 }
 
 // Example POST method implementation:

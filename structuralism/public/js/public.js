@@ -17,39 +17,47 @@ socket.on("connect", () => {
   console.log("Connected to server");
 });
 
+socket.on("setup", (data) => {
+  console.log("Setting up game");
+  updateGameData(data);
+});
+
 socket.on("update", (data) => {
   console.log('got update data');
 
-  currentChoices = data.choices;
-  globalTime = data.timer;
-  currectRound = data.round;
-  showScoreChoiceTime = data.showScoreChoiceTime;
-  roundToIntroduceGameOver = data.roundToIntroduceGameOver;
-  maxTimer = data.maxTimer;
+  // update the game data for everything to properly work
+  updateGameData(data);
 
-  // replace the element with a new one
-  let element = document.querySelector("#timer").value;
-  element = globalTime;
-
+  // replace the progress element value with a globalTime
+  let progress = document.querySelector("#timer");
+  progress.value = globalTime;
+  progress.max = maxTimer;
   // if we have met showScoreChoiceTime, show the scores
   if (globalTime == showScoreChoiceTime) {
     showScores(currentChoices);
   }
   if (globalTime <= 0) {
-    document.querySelector("#scores").innerHTML = "<h1>Please wait...</h1>";
+    document.querySelector("#scores").innerHTML = `<h1 class="md:container md:mx-auto">Please wait...</h1>`;
   }
 });
 
-socket.on("new-round-public", (choices) => {
-  console.log("new round", choices)
-  currentChoices = choices
+socket.on("new-round-public", (data) => {
+  console.log("new round from server");
+
+  // reset voting status
   hasVoted = false;
 
+  // reset the opacity of the containers for when they pop up later
+  let containers = document.querySelectorAll(".scoreContainer");
+  for (let i = 0; i < containers.length; i++) {
+    containers[i].style.opacity = "1";
+  }
+
   // clear the scores div
-  document.querySelector("#scores").innerHTML = "";
+  document.querySelector("#scores").innerHTML = `<h1 class="md:container md:mx-auto">Please wait...</h1>`;
 });
 
-socket.on("game over", () => {
+socket.on("game-over", () => {
   gameOver = true;
   document.querySelector("#scores").innerHTML = "<h1>Game over!</h1>";
   if (document.getElementById("progress")) {
@@ -63,16 +71,16 @@ const generateHTML = (choices, index) => {
     return gameOverButton;
   } else {
     let html = `
-    <div class="scoreContainer" id="score-${index}"><figure>
+    <div class="scoreContainer md:container md:mx-auto px-4 mb-10" id="score-${index}"><figure>
             <img src="${choices.image}">
-            <button class="btn btn-block btn-xs sm:btn-sm md:btn-md lg:btn-lg" onclick="vote(${index})"></button>
+            <button class="btn btn-block btn-xs sm:btn-sm md:btn-md lg:btn-lg btn-primary" id="btn-${index} data=${index}">VOTE</button>
         </figure></div>`;
     return html;
   }
 }
 const gameOverButton = `
-<div class=ScoreContainer>
-<button class="btn btn-block btn-lg sm:btn-sm md:btn-md lg:btn-lg" onclick="vote(4)">Vote to end the piece?</button>
+<div class="ScoreContainer md:container md:mx-auto px-4">
+<button class="btn btn-block btn-lg sm:btn-sm md:btn-md lg:btn-lg" id="btn-gameOver">Vote to end the piece?</button>
 </div>`;
 
 // Reveal the score options and allow voting
@@ -84,24 +92,43 @@ function showScores(choices) {
     let html = generateHTML(choices[i], i);
     document.querySelector("#scores").innerHTML += html;
   }
+
+  // add event listeners to the buttons to call the vote function
+  let buttons = document.querySelectorAll("#scores button");
+  for (let i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener("click", () => {
+      vote(i);
+    });
+  }
   // if we have met roundToIntroduceGameOver, add in the game over button
   if (currectRound >= roundToIntroduceGameOver) {
     element += gameOverButton;
   }
 }
 
+function updateGameData(data) {
+  currentChoices = data.choices;
+  globalTime = data.timer;
+  currectRound = data.round;
+  showScoreChoiceTime = data.showScoreChoiceTime;
+  roundToIntroduceGameOver = data.roundToIntroduceGameOver;
+  maxTimer = data.maxTimer;
+}
+
 // Send your vote to the server
 function vote(index) {
   if (hasVoted) {
     return;
-  }
-  socket.emit("vote", index);
-  hasVoted = true;
-  // lower opacity of the other containers
-  let containers = document.querySelectorAll(".scoreContainer");
-  for (let i = 0; i < containers.length; i++) {
-    if (i !== index) {
-      containers[i].style.opacity = 0.5;
+  } else {
+    console.log(index);
+    socket.emit("vote", index);
+    hasVoted = true;
+    // lower opacity of the other containers
+    let containers = document.querySelectorAll(".scoreContainer");
+    for (let i = 0; i < containers.length; i++) {
+      if (i !== index) {
+        containers[i].style.opacity = 0.5;
+      }
     }
   }
 }

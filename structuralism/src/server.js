@@ -65,43 +65,42 @@ app.get("/initial", (req, res) => {
 io.on("connection", (socket) => {
   console.log("a user connected - ", socket.id);
 
-  io.emit("update", getData());
+  // Get the data over to the client to get them going
+  io.emit("setup", getData());
 
-
+  // This will emit that the timer has started
   socket.on('start', () => {
 
     // start the round
     socket.broadcast.emit("new-round-public", () => {
-
       console.log("new round emitted");
-      getData(time);
-
     });
 
     // make a timer that counts down from 60 seconds, when it hits 0, it will emit a new round event to the client
     time = config.MAX_TIMER;
     let interval = setInterval(() => {
-      console.log('timer ticked');
+      //console.log('timer ticked');
       time--;
       if (time <= 0) {
-        // stop the interval
-        clearInterval(interval);
         // Increment round number
         currectRound++;
         // Get new round ready
+        console.log("updating choices");
         updateChoices();
+
         // Check the votes
-        //let image = checkWinningVote();
+        let image = checkWinningVote();
         // Emit image to band client
-        //socket.broadcast.emit("new-round-band", image);
-  
+        socket.broadcast.emit("new-round-band", image);
+
         // Emit new round
-        socket.broadcast.emit("new-round-public", getData(time));
-  
-        console.log('new round started');
+        socket.broadcast.emit("new-round-public");
+
+        // Reset timer
+        time = config.MAX_TIMER;
       }
-      if (started) {
-        // restart the timer
+      if (!started) {
+        clearInterval(interval);  // stop the timer
       }
       socket.broadcast.emit("update", getData());
     }, 1000);
@@ -167,27 +166,19 @@ async function makeNewChoices() {
 }
 
 async function updateChoices() {
-  let newChoices = await makeNewChoices();
-  choices = {
-    0: { image: newChoices[0], votes: 0 },
-    1: { image: newChoices[1], votes: 0 },
-    2: { image: newChoices[2], votes: 0 },
-    3: { image: newChoices[3], votes: 0 },
-  }
+  choices = await makeNewChoices();
   // if the current round is greater than the number of rounds to introduce the game over, then add the game over image to the choices
   if (currectRound >= roundsToIntroduceGameOver) {
-    let gameOverImage = {
-      image: "Game Over",
-      votes: 0
-    }
-    Object.assign(choices, { 4: gameOverImage });
+    let gameOver = { image: "Game Over", votes: 0 };
+    // add the new gameOver option to the choices
+    choices.push(gameOver);
   }
 }
 
 function getData() {
   let data = {
     choices: choices,
-    timer: config.MAX_TIMER - time,
+    timer: time,
     round: currectRound,
     showScoreChoiceTime: config.SHOW_SCORE_CHOICE_TIMEMARK,
     roundsToIntroduceGameOver: roundsToIntroduceGameOver,
@@ -197,13 +188,15 @@ function getData() {
 }
 
 function checkWinningVote() {
+  // get the highest vote, the first if tied or the first if there is no votes at all, thanks Lodash <3
   const winner = _.maxBy(choices, "votes");
   const image = winner.image;
   if (image === "Game Over") {
-    io.emit("game over");
+    io.emit("game-over");
     started = false;
     return;
   }
+  console.log("winner is " + winner, 'with ', winner.votes, "votes");
   return image;
 }
 
