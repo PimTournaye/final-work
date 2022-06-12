@@ -1,6 +1,5 @@
-import { io } from 'socket.io-client'
-
-let socket = io();
+import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
+let socket = io("localhost:3000");
 
 let form = document.getElementById('form');
 let input = document.getElementById('input');

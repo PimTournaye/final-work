@@ -5,7 +5,16 @@ import PongBall from './PongBall';
 
 import { io } from "https://cdn.socket.io/4.4.1/socket.io.esm.min.js";
 
-const socket = io();
+const socket = io("localhost:8080");
+
+socket.on("data", (data) => {
+  console.log('got data');
+  //console.log(data);
+})
+socket.on("arduino_event", (data) => {
+  console.log('got data arduino');
+  //console.log(data);
+})
 
 
 // Different MIDI devices, should probably get a list of devices and put them into a select menu
@@ -34,14 +43,14 @@ WebMidi
       console.log(`${index}: ${device.name}`);
     });
     // doing some weird stuff to but it makes WebMidi work properly
-    let input1 = WebMidi.getInputByName(name2);
-    let input2 = WebMidi.getInputByName(name2);
+    let input1 = WebMidi.getInputByName(name1);
+    let input2 = WebMidi.getInputByName(name3);
     inputs.push(input1);
     inputs.push(input2);
 
     // Setup the keyboards
     playerLeft = new Keyboard('left', keysLeft, 1);
-    playerRight = new Keyboard('right', keysRight, 1);
+    playerRight = new Keyboard('right', keysRight, 0);
 
     //PLAYERS.push(...playerLeft, ...playerRight);
     PLAYERS.push(playerLeft, playerRight);

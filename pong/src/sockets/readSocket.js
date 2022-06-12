@@ -4,9 +4,6 @@ import { createServer } from 'http';
 const server = createServer(app);
 import { Server } from "socket.io";
 const io = new Server(server);
-import { networkInterfaces as _networkInterfaces } from 'os';
-
-var networkInterfaces = _networkInterfaces();
 
 
 io.on('connection', (socket) => {
@@ -19,10 +16,8 @@ io.on('connection', (socket) => {
 
     console.log("Message from Client: ", data);
 
-    // socket.broadcast.emit("Send Message socket.broadcast.emit : ", data);
-    // io.emit("Send Message io.emit Broadcasted : ", data);
-    // socket.emit("Send Message : ", data);
-
+     socket.broadcast.emit("Send Message socket.broadcast.emit : ", data);
+     io.emit("Send Message io.emit Broadcasted : ", data);
   })
   
   socket.on('disconnect', () => {

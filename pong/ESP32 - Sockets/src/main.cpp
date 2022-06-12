@@ -12,12 +12,12 @@
 SocketIOclient socketIO;
 
 // Network configuration
-const char *ssid = "Erasmushogeschool2";
-const char *password = "Marcom1070";
-String socketIP = "192.168.0.150";
-// const char *ssid = "Medialab";
-// const char *password = "Ml@bAdmin!";
-// String socketIP = "10.3.208.48";
+// const char *ssid = "Erasmushogeschool2";
+// const char *password = "Marcom1070";
+// String socketIP = "192.168.0.150";
+const char *ssid = "Medialab";
+const char *password = "Ml@bAdmin!";
+String socketIP = "10.3.208.48";
 int socketPORT = 8080;
 
 // Control panel pins - Avoiding ADC2 pins since those are used for WiFi -- https://learn.adafruit.com/adafruit-huzzah32-esp32-feather/esp32-faq
@@ -105,7 +105,7 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length) 
 // MAIN FUNCTIONS //
 ////////////////////
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   Serial.println("Booting...");
   Serial.println("");
@@ -145,6 +145,7 @@ void setup() {
 
   socketIO.setReconnectInterval(5000);
 
+
 }
 
 unsigned long messageTimestamp = 0;
@@ -156,6 +157,8 @@ void loop() {
   int piano1 = analogRead(piano1Pin);
   int piano2 = analogRead(piano2Pin);
   int bass = analogRead(bassPin);
+
+  Serial.println(piano1);
 
    uint64_t now = millis();
 
@@ -187,6 +190,8 @@ void loop() {
 
     // Print JSON for debugging
     //Serial.println(output);
+
+    delay(50);
   }
 
 }

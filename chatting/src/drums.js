@@ -12,14 +12,25 @@ import { Server } from "socket.io";
 // Web MIDI API for Node.js
 import { WebMidi } from 'webmidi'
 
+
 // Socket.io initialization
 const SOCKET_PORT = 3000;
-let io = new Server(SOCKET_PORT);
+import { createServer } from "http";
+
+const httpServer = createServer();
+const io = new Server(httpServer, {
+  // ...
+});
+
 io.on('connection', (socket) => {
   console.log('a user connected');
   socket.on('chat message', (msg) => {
     console.log('chat message', msg);
   });
+});
+
+httpServer.listen(SOCKET_PORT || 3000, () => {
+  console.log("Server launched on port " + SOCKET_PORT);
 });
 
 // Automatically grab the correct serialport from available devices
@@ -114,7 +125,7 @@ WebMidi.enable()
  * Sends a message to the chat room through the socket.io server.
  * @param {*} event 
  */
-let sendMessage = () => {
+let sendMessage = (socket) => {
   if (message.length !== 0) {
     console.log('Sending message: ', message);
     socket.emit('chat message', message);
