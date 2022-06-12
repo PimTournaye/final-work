@@ -116,8 +116,6 @@ export default class Keyboard {
         let k = this.keys.find(key => new String(key.noteName).valueOf() == new String(newNote.identifier).valueOf());
         if (k) {
           this.activeNotes.push(k);
-          console.log(`${newNote.identifier} added to activeNotes`, this.side);
-
         }
         // Listener for noteoff messages and removing notes from the activeNotes array
         this.MIDI_CHANNEL.addListener("noteoff", e => {
@@ -211,16 +209,13 @@ export default class Keyboard {
       highest: highestActiveNote.y + highestActiveNote.height, // add the height of the key to the y coordinate as to cover the last key
     }
     if (this.side == 'right') {
-      coords.lowest = lowestActiveNote.y + lowestActiveNote.height;
-      coords.highest = highestActiveNote.y;
+      coords.highest = lowestActiveNote.y + lowestActiveNote.height;
+      coords.lowest = highestActiveNote.y;
+      console.log(coords.lowest, coords.highest);
     }
     this.paddle.active = true;
     // Update the position of the paddle
-    //if (this.side == 'left') {
-      this.paddle.updateRect(coords.lowest, coords.highest - coords.lowest);
-    //} else {
-      //this.paddle.updateRect(coords.highest, coords.highest - coords.lowest);
-    //}
+    this.paddle.updateRect(coords.lowest, coords.highest - coords.lowest);
     // Draw the paddle
     this.paddle.draw()
   }
@@ -253,7 +248,6 @@ export default class Keyboard {
     this.fillNotes();
     this.drawKeys();
     this.getActiveNotes();
-    //this.displayActiveNotes();
     this.handlePaddle();
   }
 }
