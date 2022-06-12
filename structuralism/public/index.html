@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <script src="public.js"></script>
+    <title>Voting page</title>
+    <script src="./js/public.js" type="module"></script>
     <link
       href="https://cdn.jsdelivr.net/npm/daisyui@2.15.2/dist/full.css"
       rel="stylesheet"
@@ -15,8 +15,8 @@
   </head>
   <body>
     <main>
-      <progress id="timer" class="progress w-56" value="0" max="100"></progress>
-      <div class="container" id="scores"></div>
+      <progress id="timer" class="progress progress-primary w-56 block sm:container md:container md:mx-auto mb-8 mt-4 ease-in duration-300" value="0" max="100"></progress>
+      <div class="container block" id="scores"><h1 class="title">Waiting for game to start...</h1></div>
     </main>
   </body>
 </html>

@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Band page</title>
-    <script src="band.js"></script>
+    <script src="./js/band.js" type="module"></script>
     <link
       href="https://cdn.jsdelivr.net/npm/daisyui@2.15.2/dist/full.css"
       rel="stylesheet"
@@ -14,8 +14,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body>
-    <div id="score">
+    <div id="container" class="md:container md:mx-auto">
+      <progress class="progress progress-primary w-56 block md:container md:mx-auto mb-8 mt-4 ease-in duration-300" id="timer" value="0" max="60"></progress>
+    <button class="btn btn-wide block md:container md:mx-auto mb-6" id="btn" >START</button>
+    <div id="score" class="block">
       <img src="">
     </div>
+  </div>
   </body>
 </html>
