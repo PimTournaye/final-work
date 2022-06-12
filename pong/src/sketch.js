@@ -18,10 +18,11 @@ socket.on("arduino_event", (data) => {
 
 
 // Different MIDI devices, should probably get a list of devices and put them into a select menu
-let name1 = "Launchkey MK3 49 LKMK3 MIDI Out"
-let name2 = "Keystation 61 MK3"
-let name3 = "KOMPLETE KONTROL M32"
-let name4 = 'IAC Driver Bus 1'
+let name1 = "Launchkey MK3 49 LKMK3 MIDI Out";
+let name2 = "Keystation 61 MK3";
+let name3 = "KOMPLETE KONTROL M32";
+let name4 = 'IAC Driver Bus 1';
+let name5 = "Oxygen 49";
 
 let ballX, ballY, div;
 
@@ -43,8 +44,8 @@ WebMidi
       console.log(`${index}: ${device.name}`);
     });
     // doing some weird stuff to but it makes WebMidi work properly
-    let input1 = WebMidi.getInputByName(name1);
-    let input2 = WebMidi.getInputByName(name3);
+    let input1 = WebMidi.getInputByName(name2);
+    let input2 = WebMidi.getInputByName(name5);
     inputs.push(input1);
     inputs.push(input2);
 
@@ -83,11 +84,15 @@ sketch.draw = () => {
   background(220);
   
   ball.update();
-
   
   PLAYERS.forEach(keyboard => {
     keyboard.update();
   });
 
   ball.checkCollision(PLAYERS);
+
 }
+
+setInterval(() => {
+  console.log(PLAYERS);
+}, 10000);
