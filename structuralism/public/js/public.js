@@ -58,8 +58,7 @@ socket.on("new-round-public", (data) => {
 });
 
 socket.on("game-over", () => {
-  gameOver = true;
-  document.querySelector("#scores").innerHTML = "<h1>Game over!</h1>";
+  document.querySelector("#scores").innerHTML = `<h1 class="md:container md:mx-auto">Game over!</h1>`;
   if (document.getElementById("progress")) {
     document.getElementById("progress").remove();
   }
@@ -102,7 +101,7 @@ function showScores(choices) {
   }
   // if we have met roundToIntroduceGameOver, add in the game over button
   if (currectRound >= roundToIntroduceGameOver) {
-    element += gameOverButton;
+    document.querySelector("#scores").innerHTML += gameOverButton;
   }
 }
 

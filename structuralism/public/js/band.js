@@ -46,11 +46,13 @@ socket.on("new-round-band", (score) => {
     document.querySelector("#score").innerHTML = `<img src="${score}" class="md:container md:mx-auto">`;
 });
 
-socket.on("game-over"), () => {
+socket.on("game-over", () => {
     console.log("Game over");
     // show the game over screen
     document.querySelector("#score").innerHTML = `<h1 class="md:container md:mx-auto">Game over!</h1>`;
-}
+    // re-add the start button back to the dom
+    document.querySelector("#btn").innerHTML = `<button class="md:container md:mx-auto md:w-full md:h-12 md:bg-blue-500 md:text-white md:font-bold md:text-center">Start</button>`;
+});
 
 // Example POST method implementation:
 async function postData(url = '', data = {}) {

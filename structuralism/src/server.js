@@ -21,7 +21,8 @@ let images = [];
 let usedImages = [];
 
 let currectRound = 0;
-let roundsToIntroduceGameOver = _.random(15, 24);;
+//let roundsToIntroduceGameOver = _.random(15, 24);
+let roundsToIntroduceGameOver = 3;
 let time = config.MAX_TIMER;
 
 let started = false;
@@ -79,6 +80,9 @@ io.on("connection", (socket) => {
     // make a timer that counts down from 60 seconds, when it hits 0, it will emit a new round event to the client
     time = config.MAX_TIMER;
     let interval = setInterval(() => {
+      if (!started) {
+        clearInterval(interval);
+      }
       //console.log('timer ticked');
       time--;
       if (time <= 0) {
@@ -90,17 +94,22 @@ io.on("connection", (socket) => {
 
         // Check the votes
         let image = checkWinningVote();
-        // Emit image to band client
-        io.emit("new-round-band", image);
+        if (image == false) {
+          // Game over
+          console.log("Game over");
+          // extra emit to be sure the game over title is shown
+          io.emit("game-over");
+          clearInterval(interval);
+        } else {
+          // Emit image to band client
+          io.emit("new-round-band", image);
 
-        // Emit new round
-        socket.broadcast.emit("new-round-public");
+          // Emit new round
+          socket.broadcast.emit("new-round-public");
 
-        // Reset timer
-        time = config.MAX_TIMER;
-      }
-      if (!started) {
-        clearInterval(interval);  // stop the timer
+          // Reset timer
+          time = config.MAX_TIMER;
+        }
       }
       io.emit("update", getData());
     }, 1000);
@@ -192,11 +201,12 @@ function checkWinningVote() {
   const winner = _.maxBy(choices, "votes");
   const image = winner.image;
   if (image === "Game Over") {
+    console.log('got game over');
     io.emit("game-over");
     started = false;
-    return;
+    return false;
   }
-  console.log("winner is " + winner, 'with ', winner.votes, "votes");
+  console.log("winner is " + winner.image, 'with ', winner.votes, "votes");
   return image;
 }
 
