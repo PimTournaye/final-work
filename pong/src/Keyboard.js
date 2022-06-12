@@ -78,13 +78,14 @@ export default class Keyboard {
           y += keyHeight;
         }
       }
-
       if (this.keys.length > 2) {
         // Variable that could be used to confirm the range of the keyboard, not in use at the moment
         this.filledKeys = true;
       }
-
-    
+      if (this.side == 'left') {
+        // reverse the array to make the lowest note the first element
+        this.keys.reverse();
+      }
     } catch (error) {
       console.log(error)
     }
@@ -96,9 +97,7 @@ export default class Keyboard {
    */
   getActiveNotes() {
     // if MIDI is not connected, stop this function
-    if (this.MIDI_CHANNEL == undefined) {
-      return;
-    }
+    this.checkMIDI();
     try {
       this.MIDI_CHANNEL.addListener("noteon", e => {
         let newNote = e.note;
@@ -117,9 +116,8 @@ export default class Keyboard {
         let k = this.keys.find(key => new String(key.noteName).valueOf() == new String(newNote.identifier).valueOf());
         if (k) {
           this.activeNotes.push(k);
-          this.activeNotes.forEach(key => {
-            key
-          });
+          console.log(`${newNote.identifier} added to activeNotes`, this.side);
+
         }
         // Listener for noteoff messages and removing notes from the activeNotes array
         this.MIDI_CHANNEL.addListener("noteoff", e => {
@@ -212,9 +210,17 @@ export default class Keyboard {
       lowest: lowestActiveNote.y,
       highest: highestActiveNote.y + highestActiveNote.height, // add the height of the key to the y coordinate as to cover the last key
     }
+    if (this.side == 'right') {
+      coords.lowest = lowestActiveNote.y + lowestActiveNote.height;
+      coords.highest = highestActiveNote.y;
+    }
     this.paddle.active = true;
     // Update the position of the paddle
-    this.paddle.updateRect(coords.lowest, coords.highest - coords.lowest);
+    //if (this.side == 'left') {
+      this.paddle.updateRect(coords.lowest, coords.highest - coords.lowest);
+    //} else {
+      //this.paddle.updateRect(coords.highest, coords.highest - coords.lowest);
+    //}
     // Draw the paddle
     this.paddle.draw()
   }
@@ -232,7 +238,7 @@ export default class Keyboard {
   }
 
   // MIDI check to avoid errors
-  checkMIDI(){
+  checkMIDI() {
     if (this.MIDI_CHANNEL == undefined) {
       return;
     }
@@ -247,7 +253,7 @@ export default class Keyboard {
     this.fillNotes();
     this.drawKeys();
     this.getActiveNotes();
-    this.displayActiveNotes();
+    //this.displayActiveNotes();
     this.handlePaddle();
   }
 }
