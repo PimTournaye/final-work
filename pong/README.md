@@ -1,141 +1,40 @@
-# P5.js-vite Starter Template 🚀
+# PONG
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+This a prototpye for a [game piece](https://en.wikipedia.org/wiki/Game_piece_(music)) based on the classic retro video game, Pong.
 
-[Vite](https://vitejs.dev/) starter template to scaffold a new [p5.js](https://p5js.org) project.
+It's partly a p5 sketch and partly an Arduino sketch on a ESP32. The p5 sketch takes care of handling MIDI devices and events, along with drawing anything needed to play the pong game. The ESP32 controller has functionality to increase the speed of the Pong ball, and four other potentiometer to send out volume data (but it can be replaced to something else that can suit your needs.)
 
-This is an unopinionated template; aside from P5.js and Vite, the rest of your project's tools are entirely up to you.
+## Requirements
 
-## Live demo
+- Two MIDI Keyboards
+- [ESP32 Feather](https://www.adafruit.com/product/3405) by Adafruit
+- Node.js (at least 12.x)
+- NPM
+- Platfrom.io for uploading and compiling the Arduino sketch for the ESP32.
 
-For a live demo please [visit this page](https://p5js-vite-demo.surge.sh).
+## Setup
 
-## Installation
+Run `npm install` or `pnpm install` to install the necessary node modules.
 
-Pull the template files with [degit](https://github.com/Rich-Harris/degit) and install dependencies.
+Modify the values in `config.js` to your liking, and make sure the two `MIDI_INSTRUMENT` values match the names of your MIDI keyboards.
 
-```
-npx degit makinteract/p5js-vite my-project
+If you want to use a different ESP32 model, please reconfigure the project in the Platform IO IDE to use your chosen model. Please also check the `main.cpp` file to reconfigure your network settings. Change the following values to match yours:
+  
+- Network name
+- Network password
+- Socket.io Port
+- Socket.io network address
 
-cd my-project
-npm install
-npm run dev
-```
+## Running the prototype
+Make sure your two MIDI keybords are plugged in before starting the game.
 
-## npm scripts
+You can start the game by running `npm run dev` in your terminal. Vite will launch an HTTP Server on the localhost address, running on port 3000. 
 
-- `npm run dev` - Starts the development server at port [3000](http://localhost:3000/)
-- `npm run build` - Builds the application in a `dist` folder
-- `npm run preview` - Serves the build files (`dist` folder) locally at port [5000](http://localhost:3000/)
+If you are using the EPS32, please instruct your audience what each potentiometer does, or don't to keep it a surprise.
 
-Note that if after this last command you do not see anything, you can use instead this other command:
+Once you open the link provided by Vite, the game will begin immediately. Play the highest and lowest keys of your MIDI keyboards to get them to draw properly. If you want to use the octave buttons,  the program will draw the addition octave(s) but still not take anything away. Use it at your own risk.
 
-- `npm run preview --host` - You should then be able to see your files locally at port [5000](http://localhost:3000/)
+## How to play
 
-## A single p5.js sketch
 
-```js
-import '../css/style.css';
-import { sketch } from 'p5js-wrapper';
-
-sketch.setup = function () {
-  createCanvas(800, 600);
-};
-
-sketch.draw = function () {
-  background(127); // grey
-  fill(255, 0, 0); // red
-  noStroke();
-  rectMode(CENTER);
-  rect(width / 2, height / 2, 50, 50);
-};
-
-sketch.mousePressed = function () {
-  console.log(`I am here at ${mouseX}:${mouseY}`);
-};
-```
-
-And here the body of the html file:
-
-```html
-<body>
-  <script type="module" src="/src/single_sketch.js"></script>
-</body>
-```
-
-## Multiple p5.js sketches
-
-If you want to use multiple sketches, you need to use a different syntax.
-
-```js
-import '../css/style.css';
-import { p5 } from 'p5js-wrapper';
-
-let sketch1 = new p5((p) => {
-  p.setup = () => {
-    const one = document.getElementById('one');
-    p.createCanvas(one.clientWidth, one.clientHeight);
-  };
-
-  p.draw = () => {
-    p.background(100);
-  };
-}, 'one');
-
-// Sketch2
-let sketch2 = new p5((p) => {
-  p.setup = () => {
-    const two = document.getElementById('two');
-    p.createCanvas(two.clientWidth, two.clientHeight);
-  };
-
-  p.draw = () => {
-    p.background(170);
-  };
-}, 'two');
-```
-
-This file is expecting two divs in the html file:
-
-```html
-<body>
-  <script type="module" src="/src/multi_sketch.js"></script>
-  <div id="one"></div>
-  <div id="two"></div>
-</body>
-```
-
-## Adding sound
-
-Sound is an [experimental feature](https://github.com/makinteract/p5js-wrapper/blob/main/README_SOUND.md).
-
-Examples usage:
-
-```js
-import { sketch } from 'p5js-wrapper';
-import 'p5js-wrapper/sound';
-
-import mysound from './mysound.mp3';
-
-let soundEffect;
-
-sketch.setup = function () {
-  createCanvas(100, 100);
-  soundEffect = loadSound(mysound);
-};
-
-sketch.draw = function () {
-  background('#eeeeee');
-};
-
-// Play sound on click
-sketch.mousePressed = function () {
-  soundEffect.play();
-};
-```
-
-This example assumes you have a file _mysound.mp3_ in the _src_ folder.
-
-## License
-
-This project is open source and available under the [MIT License](LICENSE).
+TO FILL IN
