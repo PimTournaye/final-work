@@ -2,38 +2,35 @@ import { WebMidi } from 'webmidi';
 import { sketch } from 'p5js-wrapper';
 import Keyboard from './Keyboard';
 import PongBall from './PongBall';
+import { SOCKET_PORT } from './config';
 
-import { io } from "https://cdn.socket.io/4.4.1/socket.io.esm.min.js";
+import { io } from "socket.io-client";
 
-const socket = io("localhost:8080");
+if (ESP_MODE) {
+  const socket = io(`http://localhost:${SOCKET_PORT}`);
 
-socket.on("data", (data) => {
-  console.log('got data');
-  //console.log(data);
-})
-socket.on("arduino_event", (data) => {
-  console.log('got data arduino');
-  //console.log(data);
-})
+  socket.on("data", (data) => {
+    console.log('got data');
+    //console.log(data);
+  })
+  socket.on("arduino_event", (data) => {
+    console.log('got data arduino');
+    //console.log(data);
+  })
 
-
-// Different MIDI devices, should probably get a list of devices and put them into a select menu
-let name1 = "Launchkey MK3 49 LKMK3 MIDI Out";
-let name2 = "Keystation 61 MK3";
-let name3 = "KOMPLETE KONTROL M32";
-let name4 = 'IAC Driver Bus 1';
-let name5 = "Oxygen 49";
+}
 
 let ballX, ballY, div;
 
-export let w = 1200;
-export let h = 900
+export let w = window.innerWidth;
+export let h = window.innerHeight;
 export let inputs = [];
 
 let playerLeft, playerRight;
 export let PLAYERS = [];
-export let [keysLeft, keysRight] = [[54], [54]];
 export let ball;
+// Giving a starting value to the keys
+export let [keysLeft, keysRight] = [[54], [54]];
 
 // MIDI SETUP
 WebMidi
@@ -44,8 +41,8 @@ WebMidi
       console.log(`${index}: ${device.name}`);
     });
     // doing some weird stuff to but it makes WebMidi work properly
-    let input1 = WebMidi.getInputByName(name2);
-    let input2 = WebMidi.getInputByName(name5);
+    let input1 = WebMidi.getInputByName(MIDI_INSTRUMENT_PLAYER_LEFT);
+    let input2 = WebMidi.getInputByName(MIDI_INSTRUMENT_PLAYER_RIGHT);
     inputs.push(input1);
     inputs.push(input2);
 
@@ -68,10 +65,10 @@ sketch.setup = () => {
   ballY = height / 2;
 
   // create a div for debugging
-  div = createDiv('this is some text');
-  div.style('font-size', '16px');
-  div.id = '#active'
-  div.position(width / 2, height / 2);
+  // div = createDiv('this is some text');
+  // div.style('font-size', '16px');
+  // div.id = '#active'
+  // div.position(width / 2, height / 2);
 
   // Setup up the pong ball
   let direction = createVector(random(-25, 25), random(-25, 25));
@@ -82,9 +79,9 @@ sketch.setup = () => {
 // only start draw once the MIDI device is connected and the lowest and highest note are defined and remain the same for at least 10 seconds
 sketch.draw = () => {
   background(220);
-  
+
   ball.update();
-  
+
   PLAYERS.forEach(keyboard => {
     keyboard.update();
   });
@@ -92,7 +89,3 @@ sketch.draw = () => {
   ball.checkCollision(PLAYERS);
 
 }
-
-setInterval(() => {
-  console.log(PLAYERS);
-}, 10000);
