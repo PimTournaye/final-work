@@ -97,7 +97,9 @@ export default class Keyboard {
    */
   getActiveNotes() {
     // if MIDI is not connected, stop this function
-    this.checkMIDI();
+    if (this.MIDI_CHANNEL == undefined) {
+      return;
+    }
     try {
       this.MIDI_CHANNEL.addListener("noteon", e => {
         let newNote = e.note;
@@ -230,13 +232,6 @@ export default class Keyboard {
       html += `${this.activeNotes[i].noteName}, `;
     }
     theDiv.innerHTML = html;
-  }
-
-  // MIDI check to avoid errors
-  checkMIDI() {
-    if (this.MIDI_CHANNEL == undefined) {
-      return;
-    }
   }
 
   /**
