@@ -16,6 +16,7 @@
     "p5js-wrapper": "^1.2.3",
     "rollup": "^2.75.5",
     "socket.io": "^4.5.1",
+    "socket.io-client": "^4.5.1",
     "webmidi": "^3.0.19"
   }
 }
