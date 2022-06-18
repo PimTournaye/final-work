@@ -21,8 +21,8 @@ let images = [];
 let usedImages = [];
 
 let currectRound = 0;
-//let roundsToIntroduceGameOver = _.random(15, 24);
-let roundsToIntroduceGameOver = 3;
+let roundsToIntroduceGameOver = config.ROUNDS_TO_INTRODUCE_GAME_OVER;
+
 let time = config.MAX_TIMER;
 
 let started = false;
