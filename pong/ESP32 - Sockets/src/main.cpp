@@ -11,13 +11,10 @@
 // WiFiMulti WiFiMulti;
 SocketIOclient socketIO;
 
-// Network configuration
-// const char *ssid = "Erasmushogeschool2";
-// const char *password = "Marcom1070";
-// String socketIP = "192.168.0.150";
-const char *ssid = "Medialab";
-const char *password = "Ml@bAdmin!";
-String socketIP = "10.3.208.48";
+// Network configuration - change these to match your network
+const char *ssid = "NETWORK NAME";
+const char *password = "NETWORK PASSWORD";
+String socketIP = "0.0.0.0" // IP of the socket.io server
 int socketPORT = 8080;
 
 // Control panel pins - Avoiding ADC2 pins since those are used for WiFi -- https://learn.adafruit.com/adafruit-huzzah32-esp32-feather/esp32-faq
@@ -26,8 +23,6 @@ int piano1Pin = 33;        // A9 or GPIO33
 int piano2Pin = 34;        // A2 or GPIO34
 int bassPin = 39;        // A3 or GPIO39
 int speedPin = 36;         // A4 or GPIO36 --- noise
-
-
 
 // map one potentiometer to a range of values
 int getSpeed() {
@@ -137,15 +132,12 @@ void setup() {
   pinMode(bassPin, INPUT);
 
   // server address, port and URL
-  //socketIO.begin(socketIP, socketPORT, "/socket.io/?EIO=4");
   socketIO.begin(socketIP, socketPORT, "/socket.io/?EIO=4");
 
   // event handler
   socketIO.onEvent(socketIOEvent);
 
   socketIO.setReconnectInterval(5000);
-
-
 }
 
 unsigned long messageTimestamp = 0;
@@ -191,6 +183,7 @@ void loop() {
     // Print JSON for debugging
     //Serial.println(output);
 
+    // Delay to stabilze readings
     delay(50);
   }
 
