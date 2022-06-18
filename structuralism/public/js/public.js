@@ -86,11 +86,15 @@ const gameOverButton = `
 function showScores(choices) {
   // clear the scores div
   document.querySelector("#scores").innerHTML = "";
-  // generate html for the scores and append it to the scores div 
+  // add flex container
+  document.querySelector("#scores").innerHTML += `<div class="flex flex-col md:items-center md:justify-center">`;
   for (let i = 0; i < choices.length; i++) {
     let html = generateHTML(choices[i], i);
+    // generate html for the scores and append it to the scores div 
     document.querySelector("#scores").innerHTML += html;
   }
+  // close flex container
+  document.querySelector("#scores").innerHTML += `</div>`;
 
   // add event listeners to the buttons to call the vote function
   let buttons = document.querySelectorAll("#scores button");
