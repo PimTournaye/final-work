@@ -1,10 +1,14 @@
 import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
-const socket = io("http://localhost:2000");
+import { config } from "../../src/config";
+
+const SOCKET_SERVER_URL = "http://localhost";
+
+const socket = io(`${SOCKET_SERVER_URL}:${config.PORT}`);
 
 let globalTime, maxTimer;
 
 async function start() {
-    let url = "http://localhost:2000/start";
+    let url = `${SOCKET_SERVER_URL}:${config.PORT}/start`;
     socket.emit("start");
 
     // POST /start to start the game
@@ -17,7 +21,7 @@ document.querySelector("#btn").addEventListener("click", () => {
 });
 
 window.onload = async () => {
-    let initial = await fetch("http://localhost:2000/initial");
+    let initial = await fetch(`${SOCKET_SERVER_URL}:${config.PORT}/initial`);
     let initialScore = await initial.json();
     document.querySelector("#score").innerHTML = `<img src="${initialScore.image}">`;
 }
@@ -39,6 +43,13 @@ socket.on("update", (data) => {
     progress.value = maxTimer - globalTime;
 });
 
+socket.on("start", () => {
+    console.log("start received");
+    // if the start button is stil there, remove it
+    if (document.querySelector("#btn")) {
+        document.querySelector("#btn").remove();
+    }
+});
 
 socket.on("new-round-band", (score) => {
     console.log('Got new round');
