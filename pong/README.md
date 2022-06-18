@@ -32,9 +32,14 @@ You can start the game by running `npm run dev` in your terminal. Vite will laun
 
 If you are using the EPS32, please instruct your audience what each potentiometer does, or don't to keep it a surprise.
 
-Once you open the link provided by Vite, the game will begin immediately. Play the highest and lowest keys of your MIDI keyboards to get them to draw properly. If you want to use the octave buttons,  the program will draw the addition octave(s) but still not take anything away. Use it at your own risk.
+Once you open the link provided by Vite, the game will begin immediately. Play the highest and lowest keys of your MIDI keyboards to get them to draw properly. If you want to use the octave buttons, the program will draw the addition octave(s) but still not take anything away. Use it at your own risk.
 
-## How to play
+## How to play / Guidelines
 
+The goal of this game piece is try to bounce the ball back and forth while staying musical with the entire band. If using an ESP32 controller, they will be able to control certain parameters, be it musician volume or speed of the game.
 
-TO FILL IN
+The two keyboard players are able to bounce back and forth by creating a paddle on their side of the screen. You can create a paddle on your side of the screen by playing at least two notes at the smae time. The paddle will then stretch from the lowest played note to the highest played note.
+
+Something you could try to play around with the ball. Change up the style or way you play based on the movement and speed of the ball, for example: if the ball is moving slowly, try to play a melody that follows the path of ball. Or if the ball is moving very fast, try to focus on plauing broad interesting chords 
+
+There is no winstate for this game, feel free to quit at your own leasure.
