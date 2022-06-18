@@ -150,6 +150,13 @@ function checkForUsedImages(image) {
 
 // function to fill choices with the images
 async function makeNewChoices() {
+  // if UsedImages is as big or has three images less than the images array, game over the game
+  if (usedImages.length >= images.length - 3) {
+    console.log("Not enough images to make new choices, ending game");
+    io.emit("game-over");
+    return;
+  }
+
   let choices = [];
   let pages = _.sampleSize(images, 4)
   // if the image is already used, get a new one that hasn't been used and check again if it's already used, keep doing this until you get a new unused image
