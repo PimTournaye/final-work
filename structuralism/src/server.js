@@ -124,7 +124,7 @@ io.on("connection", (socket) => {
 
 // get all the images from the public folder and put them in an array, then shuffle the array
 async function getImages() {
-  let loadImages = readdirSync("../public/img/Treatise");
+  let loadImages = readdirSync("public/img/Treatise");
   // add all the images to the array
   images = loadImages.map((image) => {
     return `./img/Treatise/${image}`;
