@@ -133,12 +133,14 @@ async function getImages() {
   images = _.shuffle(images);
 }
 
+// Get initial score to send to the band
 function getInitialScore() {
   let score = _.sample(images);
   usedImages.push(score);
   return score;
 }
 
+// check if the image is already used
 function checkForUsedImages(image) {
   for (let i = 0; i < usedImages.length; i++) {
     if (usedImages[i] === image) {
@@ -181,6 +183,7 @@ async function makeNewChoices() {
   return choices;
 }
 
+// function to update the availble choices for the audience, introduce a new round if the round number is greater than the rounds to introduce the game over
 async function updateChoices() {
   choices = await makeNewChoices();
   // if the current round is greater than the number of rounds to introduce the game over, then add the game over image to the choices
@@ -191,6 +194,7 @@ async function updateChoices() {
   }
 }
 
+// Data GET function
 function getData() {
   let data = {
     choices: choices,
@@ -203,6 +207,7 @@ function getData() {
   return data;
 }
 
+// check which choice gathered the most votes
 function checkWinningVote() {
   // get the highest vote, the first if tied or the first if there is no votes at all, thanks Lodash <3
   const winner = _.maxBy(choices, "votes");
@@ -217,6 +222,7 @@ function checkWinningVote() {
   return image;
 }
 
+// Start the server
 httpServer.listen(config.PORT, async () => {
   console.log(`listening on port ${config.PORT}`);
   // populate the images array
