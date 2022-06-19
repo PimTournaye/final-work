@@ -1,14 +1,14 @@
 import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
-import { config } from "../../src/config";
 
 const SOCKET_SERVER_URL = "http://localhost";
+const SOCKET_SERVER_PORT = 2000;
 
-const socket = io(`${SOCKET_SERVER_URL}:${config.PORT}`);
+const socket = io(`${SOCKET_SERVER_URL}:${SOCKET_SERVER_PORT}`);
 
 let globalTime, maxTimer;
 
 async function start() {
-    let url = `${SOCKET_SERVER_URL}:${config.PORT}/start`;
+    let url = `${SOCKET_SERVER_URL}:${SOCKET_SERVER_PORT}/start`;
     socket.emit("start");
 
     // POST /start to start the game
@@ -21,7 +21,7 @@ document.querySelector("#btn").addEventListener("click", () => {
 });
 
 window.onload = async () => {
-    let initial = await fetch(`${SOCKET_SERVER_URL}:${config.PORT}/initial`);
+    let initial = await fetch(`${SOCKET_SERVER_URL}:${SOCKET_SERVER_PORT}/initial`);
     let initialScore = await initial.json();
     document.querySelector("#score").innerHTML = `<img src="${initialScore.image}">`;
 }
